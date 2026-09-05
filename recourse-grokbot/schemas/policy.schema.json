@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://recourse.local/schemas/policy.schema.json",
+  "title": "Recourse Policy IR",
+  "description": "Compiled, executable representation of one institution's public policy for one adverse-decision type. See POLICY_IR.md for rationale on every section.",
+  "type": "object",
+  "required": [
+    "policy_id",
+    "authority",
+    "source",
+    "trigger",
+    "eligibility",
+    "student_obligations",
+    "institution_obligations",
+    "business_day_rules",
+    "required_evidence",
+    "submission_method",
+    "escalation",
+    "terminal_states",
+    "ai_use_restrictions",
+    "ambiguity_and_conflict"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "policy_id": {
+      "type": "string",
+      "description": "Stable slug: {institution-slug}__{decision-type-slug}__v{n}"
+    },
+    "authority": {
+      "type": "object",
+      "required": ["institution", "decision_types", "authority_level", "governing_document"],
+      "additionalProperties": false,
+      "properties": {
+        "institution": { "type": "string" },
+        "unit": { "type": "string" },
+        "decision_types": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "authority_level": {
+          "type": "string",
+          "enum": ["campus_wide", "college_level", "department_level", "program_level"]
+        },
+        "supersedes": { "type": "array", "items": { "type": "string" } },
+        "governing_document": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["url", "fetched_at", "content_hash", "verification_status"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "fetched_at": { "type": "string", "format": "date-time" },
+        "fetch_method": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "effective_date": { "type": "string", "format": "date" },
+        "last_verified_current": { "type": "string", "format": "date-time" },
+        "verification_status": {
+          "type": "string",
+          "enum": ["full_page_fetch", "search_snippet_only", "cached_stale", "unverifiable"]
+        }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "required": ["decision_types"],
+      "additionalProperties": false,
+      "properties": {
+        "decision_types": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "excludes": { "type": "array", "items": { "type": "string" } },
+        "applies_to_student_types": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "eligibility": {
+      "type": "object",
+      "required": ["valid_grounds", "grounds_are_exhaustive"],
+      "additionalProperties": false,
+      "properties": {
+        "valid_grounds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "explicitly_invalid_grounds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "grounds_are_exhaustive": { "type": "boolean" }
+      }
+    },
+    "student_obligations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/obligation" }
+    },
+    "institution_obligations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/obligation" }
+    },
+    "business_day_rules": {
+      "type": "object",
+      "required": ["unit_used", "excludes"],
+      "additionalProperties": false,
+      "properties": {
+        "unit_used": { "type": "string", "enum": ["calendar_day", "business_day", "working_day"] },
+        "excludes": { "type": "array", "items": { "type": "string" } },
+        "definition_source_quote": { "type": "string" },
+        "institution_closure_calendar_url": { "type": "string", "format": "uri" }
+      }
+    },
+    "required_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ground_id", "evidence_type", "required"],
+        "additionalProperties": false,
+        "properties": {
+          "ground_id": { "type": "string" },
+          "evidence_type": { "type": "string" },
+          "required": { "type": "boolean" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "submission_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string" },
+        "recipient": { "type": "string" },
+        "format_constraints": { "type": "string" }
+      }
+    },
+    "escalation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "body", "available_when"],
+        "additionalProperties": false,
+        "properties": {
+          "level": { "type": "integer", "minimum": 1 },
+          "body": { "type": "string" },
+          "available_when": { "type": "string" },
+          "external": { "type": "boolean" }
+        }
+      }
+    },
+    "terminal_states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "final"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "final": { "type": "boolean" }
+        }
+      }
+    },
+    "ai_use_restrictions": {
+      "type": "object",
+      "required": ["restricts_ai_authored_narrative", "recourse_behavior"],
+      "additionalProperties": false,
+      "properties": {
+        "restricts_ai_authored_narrative": { "type": "boolean" },
+        "quote": { "type": "string" },
+        "source_section": { "type": "string" },
+        "recourse_behavior": { "type": "string" }
+      }
+    },
+    "ambiguity_and_conflict": {
+      "type": "object",
+      "required": ["conflicting_sources", "resolution"],
+      "additionalProperties": false,
+      "properties": {
+        "conflicting_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "claim", "authority_level"],
+            "additionalProperties": false,
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "claim": { "type": "string" },
+              "authority_level": {
+                "type": "string",
+                "enum": ["campus_wide", "college_level", "department_level", "program_level"]
+              }
+            }
+          }
+        },
+        "resolution": { "type": "string" },
+        "resolution_rule_used": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "obligation": {
+      "type": "object",
+      "required": ["id", "deadline", "consequence_of_miss"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "deadline": {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["relative", "absolute", "portal_window", "unspecified"] },
+            "amount": { "type": "integer" },
+            "unit": { "type": "string", "enum": ["calendar_day", "business_day", "working_day"] },
+            "from_event": { "type": "string" },
+            "absolute_datetime": { "type": "string", "format": "date-time" },
+            "window_open": { "type": "string", "format": "date-time" },
+            "window_close": { "type": "string", "format": "date-time" },
+            "timezone": { "type": "string" }
+          }
+        },
+        "submission_method": { "type": "string" },
+        "consequence_of_miss": { "type": "string" }
+      }
+    }
+  }
+}

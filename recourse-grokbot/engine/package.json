@@ -1,0 +1,28 @@
+{
+  "name": "recourse-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic Recourse case engine (Phase 1): provenance validation, rule validation, procedure model, case twin, deviation detection. No LLM calls in this package.",
+  "type": "module",
+  "bin": {
+    "recourse": "./dist/cli/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "evaluate": "node src/cli/index.ts evaluate",
+    "evaluate:dist": "node dist/cli/index.js evaluate"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "pdf-parse": "2.4.5"
+  }
+}

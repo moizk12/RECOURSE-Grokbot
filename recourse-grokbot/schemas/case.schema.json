@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://recourse.local/schemas/case.schema.json",
+  "title": "Recourse Case",
+  "description": "Persistent state for one student's case against one compiled policy. See STATE_MACHINE.md for the state enum's transition rules.",
+  "type": "object",
+  "required": [
+    "case_id",
+    "state",
+    "policy_ref",
+    "student_facts_summary",
+    "student_obligation_status",
+    "institution_obligation_status",
+    "evidence_status",
+    "history",
+    "created_at",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": { "type": "string" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "DISCOVERED",
+        "PROCEDURE_VERIFIED",
+        "BLOCKED_SOURCE_CONFLICT",
+        "BLOCKED_SOURCE_UNAVAILABLE",
+        "BLOCKED_STALE_POLICY",
+        "ELIGIBLE",
+        "INELIGIBLE",
+        "EVIDENCE_INCOMPLETE",
+        "READY_FOR_HUMAN",
+        "SUBMITTED",
+        "AWAITING_INSTITUTION",
+        "INSTITUTION_TIMEOUT",
+        "ESCALATION_AVAILABLE",
+        "CLOSED"
+      ]
+    },
+    "state_reason": {
+      "type": "string",
+      "description": "Human-readable justification for the current state, always required when state is any BLOCKED_* or INELIGIBLE value."
+    },
+    "policy_ref": {
+      "type": "object",
+      "required": ["policy_id", "content_hash", "pinned_at"],
+      "additionalProperties": false,
+      "properties": {
+        "policy_id": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "pinned_at": { "type": "string", "format": "date-time" },
+        "last_reverified_at": { "type": "string", "format": "date-time" },
+        "drift_detected": { "type": "boolean" }
+      }
+    },
+    "decision_type": { "type": "string" },
+    "decision_notice_date": { "type": "string", "format": "date" },
+    "student_facts_summary": {
+      "type": "string",
+      "description": "Redacted/synthetic-safe summary of the student's stated situation, sourced only from what the student themself provided."
+    },
+    "asserted_ground_id": {
+      "type": ["string", "null"],
+      "description": "The eligibility.valid_grounds[].id or eligibility.explicitly_invalid_grounds[].id this case is evaluated against."
+    },
+    "eligibility_determination": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "result": { "type": "string", "enum": ["eligible", "ineligible", "undetermined"] },
+        "basis": { "type": "string" },
+        "cited_policy_section": { "type": "string" }
+      }
+    },
+    "student_obligation_status": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/obligation_status" }
+    },
+    "institution_obligation_status": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/obligation_status" }
+    },
+    "evidence_status": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_type", "required", "provided"],
+        "additionalProperties": false,
+        "properties": {
+          "evidence_type": { "type": "string" },
+          "required": { "type": "boolean" },
+          "provided": { "type": "boolean" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "ai_narrative_generated": {
+      "type": "boolean",
+      "description": "Must be false unless ai_use_restrictions on the pinned policy permitted it AND the student explicitly opted in (recorded in history)."
+    },
+    "human_approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["requested_at", "action", "approved"],
+        "additionalProperties": false,
+        "properties": {
+          "requested_at": { "type": "string", "format": "date-time" },
+          "action": { "type": "string" },
+          "approved": { "type": ["boolean", "null"] },
+          "approved_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "description": "Append-only. Mirrors events.log.jsonl; never rewritten, only appended.",
+      "items": {
+        "type": "object",
+        "required": ["at", "event", "detail"],
+        "additionalProperties": false,
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "event": { "type": "string" },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "obligation_status": {
+      "type": "object",
+      "required": ["obligation_id", "party", "due_at", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "obligation_id": { "type": "string" },
+        "party": { "type": "string", "enum": ["student", "institution"] },
+        "due_at": { "type": ["string", "null"], "format": "date-time" },
+        "computed_from": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "met", "missed", "waived", "unknown"] },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
