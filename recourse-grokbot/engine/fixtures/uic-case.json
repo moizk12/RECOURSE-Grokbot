@@ -1,6 +1,6 @@
 {
   "_note": "sources[0] is acquired via warrant/acquireSource.ts (live HTTP fetch, redirect-followed, raw bytes hashed, then text extracted with pdf-parse 2.4.5) from the official UIC Student Academic Grievance Procedures PDF (Effective April 27, 2017): https://dos.uic.edu/wp-content/uploads/sites/262/2019/12/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf, retrieved 2026-09-05T09:56:25.964Z. Each candidateRule's `warrant` cites an exact character span into that acquired document's canonical text -- checked deterministically by warrant/warrantValidator.ts before rule validation ever runs. This fixture models the Level 2 Grievance path (Administrative Officer decision -> student appeal to Grievance Officer), the flagship two-sided-clock scenario: Section IV.A.4's 'whichever date is earlier' rule (recorded in provenance.sourceSpan, not independently warrant-checked in this MVP) means the student's own appeal clock starts from the AO's decision date OR its due date, whichever is earlier -- so an institution that goes silent does not freeze the student's clock, it starts it.",
-  "now": "2026-10-15T00:00:00Z",
+  "evaluationAt": "2026-10-15T00:00:00Z",
   "holidays": [
     "2026-09-07"
   ],

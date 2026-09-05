@@ -12,11 +12,17 @@ import { addDays, NO_HOLIDAYS } from "../calendar/businessDayCalendar.ts";
  * there is no incremental "apply this one event to the existing state" path,
  * which is what makes re-verification and drift detection safe to run
  * repeatedly.
+ *
+ * `evaluationAt` is the point in time the case is evaluated as of. It is a
+ * required, explicit parameter — there is no default and nothing in this
+ * module ever calls Date.now()/new Date() to substitute one. Deadline logic
+ * (missed/pending/met) is a pure function of (rules, events, evaluationAt),
+ * never of ambient system or model time.
  */
 export function computeCaseState(
   procedure: ProcedureModel,
   log: CaseEventLog,
-  nowISO: string,
+  evaluationAt: string,
   calendar: HolidayCalendar = NO_HOLIDAYS
 ): CaseState {
   const allObligations = new Map<string, ValidatedPolicyRule>();
@@ -29,16 +35,16 @@ export function computeCaseState(
   const dueDateCache = new Map<string, DueDateResult>();
 
   const studentObligations = procedure.studentObligations.map((r) =>
-    computeObligationState(r, "student", log, nowISO, calendar, allObligations, dueDateCache)
+    computeObligationState(r, "student", log, evaluationAt, calendar, allObligations, dueDateCache)
   );
   const institutionObligations = procedure.institutionObligations.map((r) =>
-    computeObligationState(r, "institution", log, nowISO, calendar, allObligations, dueDateCache)
+    computeObligationState(r, "institution", log, evaluationAt, calendar, allObligations, dueDateCache)
   );
 
   const eligibility = determineEligibility(procedure, log);
 
   return {
-    asOf: nowISO,
+    evaluationAt,
     obligations: [...studentObligations, ...institutionObligations],
     eligibility,
   };
@@ -179,7 +185,7 @@ function computeObligationState(
   rule: ValidatedPolicyRule,
   party: "student" | "institution",
   log: CaseEventLog,
-  nowISO: string,
+  evaluationAt: string,
   calendar: HolidayCalendar,
   allObligations: ReadonlyMap<string, ValidatedPolicyRule>,
   dueDateCache: Map<string, DueDateResult>
@@ -197,7 +203,7 @@ function computeObligationState(
     return { obligationId: rule.id, party, dueAt, status: "met", reason: "recorded completion event found" };
   }
 
-  if (nowISO > dueAt) {
+  if (evaluationAt > dueAt) {
     return { obligationId: rule.id, party, dueAt, status: "missed", reason: `deadline ${dueAt} has passed with no recorded completion` };
   }
 

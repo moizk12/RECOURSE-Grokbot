@@ -11,7 +11,14 @@ import { SourceStore } from "../warrant/sourceStore.ts";
 import { proposeAndValidateAll } from "../warrant/pipeline.ts";
 
 interface Fixture {
-  now: string;
+  /**
+   * The point in time this fixture is evaluated as of. Required and
+   * explicit — read verbatim from the fixture file, never defaulted to the
+   * current wall-clock time. Renamed from the earlier "now" field name,
+   * which invited confusion with ambient/system time; this value is a fixed
+   * synthetic evaluation instant chosen by whoever authored the fixture.
+   */
+  evaluationAt: string;
   holidays?: string[];
   sourceAmbiguities?: string[];
   /** Captured source artifacts that candidateRules' warrants may cite. */
@@ -46,7 +53,7 @@ export function evaluateFixture(fixture: Fixture): EvaluationResult {
   const conflicts = detectConflicts(validated);
   const calendar = new FixedHolidayCalendar(fixture.holidays ?? []);
   const log = new CaseEventLog(fixture.events);
-  const caseState = computeCaseState(procedure, log, fixture.now, calendar);
+  const caseState = computeCaseState(procedure, log, fixture.evaluationAt, calendar);
   const deviations = detectDeviations({
     procedure,
     caseState,

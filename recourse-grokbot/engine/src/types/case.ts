@@ -43,7 +43,13 @@ export interface EligibilityDetermination {
 }
 
 export interface CaseState {
-  readonly asOf: string;
+  /**
+   * The evaluation-time timestamp this state was computed against — always
+   * caller-supplied (see case/caseTwin.ts#computeCaseState), never read from
+   * system/wall-clock time or inferred by a model. Two calls with identical
+   * inputs but different evaluationAt values are expected to differ.
+   */
+  readonly evaluationAt: string;
   readonly obligations: ReadonlyArray<ObligationState>;
   readonly eligibility: EligibilityDetermination;
 }
