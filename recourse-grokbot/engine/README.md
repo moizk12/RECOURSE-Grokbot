@@ -24,6 +24,11 @@ npm test
 node src/cli/index.ts evaluate fixtures/uic-case.json
 ```
 
+## CLI commands
+
+- `recourse evaluate <fixture.json>` — pre-warranted `candidateRules` + pre-captured `sources`, no network call. See `src/cli/evaluate.ts`.
+- `recourse resolve <input.json>` — the full untrusted-input boundary: live source acquisition (`sourcesToAcquire`) -> raw proposal resolution (`rawProposals`, the `RawClaimProposal` contract) -> warrant validation -> rule validation -> procedure model -> Case Twin -> deviations. This is the one stable entry point for an external caller (e.g. a Grok Bot skill) that has not yet fetched or warranted anything. See `src/cli/resolveCase.ts` and `GROK_HANDOFF.md` for the input/output contract; `fixtures/uic-case-raw.json` is a live-network runnable example.
+
 ## Layout
 
 ```
@@ -33,7 +38,7 @@ src/calendar/        deterministic business-day/date engine
 src/procedure/       procedure model (obligations/evidence gates/escalation/terminal states) + conflict detection
 src/case/            append-only event log + Case Twin state computation
 src/deviation/       procedural deviation detection
-src/cli/             `recourse evaluate <fixture.json>`
+src/cli/             `recourse evaluate <fixture.json>`, `recourse resolve <input.json>`
 test/                node:test suite — see file names for the specific adversarial claim each proves
 fixtures/            example case fixtures consumed by the CLI and the pipeline test
 ```

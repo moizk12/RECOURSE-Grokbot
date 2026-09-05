@@ -1,0 +1,100 @@
+{
+  "_note": "Manual, network-dependent integration fixture for `recourse resolve` -- the one CLI command exercising the full boundary: live source acquisition (warrant/acquireSource.ts fetches this sourceId from the real UIC URL below, no embedded content) -> raw proposal resolution (warrant/rawProposal.ts binds each rawProposals[].quotedText against the freshly fetched, hashed document) -> warrant validation -> rule validation -> procedure model -> Case Twin -> deviations. Same underlying UIC Student Academic Grievance Procedures two-sided clock as fixtures/uic-case.json, but expressed as untrusted RawClaimProposal input instead of a pre-warranted candidateRules array. Run with network access: `npm run resolve fixtures/uic-case-raw.json` (or `npm run resolve:dist ...` after `npm run build`).",
+  "evaluationAt": "2026-10-15T00:00:00Z",
+  "holidays": [
+    "2026-09-07"
+  ],
+  "sourceAmbiguities": [],
+  "sourcesToAcquire": [
+    {
+      "sourceId": "uic-grievance-procedures-2017",
+      "requestedUrl": "https://dos.uic.edu/wp-content/uploads/sites/262/2019/12/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf"
+    }
+  ],
+  "rawProposals": [
+    {
+      "rule": {
+        "id": "uic-grievance-procedures-2017__ao_decision_deadline",
+        "policyId": "uic-grievance-procedures-2017",
+        "kind": "obligation",
+        "provenance": {
+          "sourceUrl": "https://dos.uic.edu/wp-content/uploads/sites/262/2019/12/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+          "retrievedAt": "2026-09-05T09:56:25.964Z",
+          "sourceSpan": "Section IV.E: 'The Administrative Officer's decision must be issued in writing, within ten (10) days following their receipt of the Academic Grievance.'",
+          "actor": "administrative_officer"
+        },
+        "actor": "administrative_officer",
+        "action": "decide_academic_grievance",
+        "trigger": {
+          "eventType": "grievance_filed"
+        },
+        "conditions": [],
+        "deonticForce": "MUST",
+        "deadline": {
+          "type": "relative",
+          "amount": 10,
+          "unit": "business_day",
+          "fromEvent": "grievance_filed"
+        },
+        "consequenceOfMiss": "Section VII.D: 'The failure of any University administrator to meet any deadline shall not entitle the Grievant to any relief requested, nor shall such a failure be construed as tantamount to a decision in the Grievant's favor.' No automatic win and no stated automatic escalation -- policy is explicit, not silent, on this point.",
+        "authorityLevel": "campus_wide"
+      },
+      "sourceId": "uic-grievance-procedures-2017",
+      "quotedText": "The Administrative Officer’s decision must be issued in\nwriting, within ten (10) days following their receipt of the Academic Grievance.",
+      "claimType": "directly_stated"
+    },
+    {
+      "rule": {
+        "id": "uic-grievance-procedures-2017__student_appeal_to_go",
+        "policyId": "uic-grievance-procedures-2017",
+        "kind": "obligation",
+        "provenance": {
+          "sourceUrl": "https://dos.uic.edu/wp-content/uploads/sites/262/2019/12/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+          "retrievedAt": "2026-09-05T09:56:25.964Z",
+          "sourceSpan": "Section V.B.2 (Level 2): 'The Grievant’s appeal must be submitted, in writing, to the Grievance Officer within five (5) days following the Grievant’s receipt of the Administrative Officer’s decision.' Section IV.A.4: 'Limitations imposed upon the Grievant for filing appeals of decisions will be calculated from the date that any decision is received by the Grievant, or is due, whichever date is earlier.'",
+          "actor": "student"
+        },
+        "actor": "student",
+        "action": "appeal_ao_decision_to_grievance_officer",
+        "trigger": {
+          "eventType": "grievance_filed"
+        },
+        "conditions": [],
+        "deonticForce": "MUST",
+        "deadline": {
+          "type": "derived",
+          "amount": 5,
+          "unit": "business_day",
+          "combinator": "earliest",
+          "anchors": [
+            {
+              "fromEvent": "institution_action_taken"
+            },
+            {
+              "fromObligationDue": "uic-grievance-procedures-2017__ao_decision_deadline"
+            }
+          ]
+        },
+        "consequenceOfMiss": "Section VII.D: 'Any Grievant or complainant who fails to observe time limitations imposed by these Procedures will be bound by the decisions previously made' -- here, the AO's decision (or its absence) stands.",
+        "authorityLevel": "campus_wide"
+      },
+      "sourceId": "uic-grievance-procedures-2017",
+      "quotedText": "The Grievant’s appeal must be submitted, in writing, to the Grievance\nOfficer within five (5) days following the Grievant’s receipt of the Administrative\nOfficer’s decision.",
+      "claimType": "directly_stated"
+    }
+  ],
+  "events": [
+    {
+      "eventId": "e1",
+      "type": "case_opened",
+      "occurredAt": "2026-08-25T00:00:00Z",
+      "detail": {}
+    },
+    {
+      "eventId": "e2",
+      "type": "grievance_filed",
+      "occurredAt": "2026-09-01T00:00:00Z",
+      "detail": {}
+    }
+  ]
+}

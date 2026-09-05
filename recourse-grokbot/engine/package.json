@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
     "evaluate": "node src/cli/index.ts evaluate",
-    "evaluate:dist": "node dist/cli/index.js evaluate"
+    "evaluate:dist": "node dist/cli/index.js evaluate",
+    "resolve": "node src/cli/index.ts resolve",
+    "resolve:dist": "node dist/cli/index.js resolve"
   },
   "engines": {
     "node": ">=18.0.0"

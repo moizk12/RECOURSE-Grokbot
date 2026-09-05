@@ -34,3 +34,5 @@ export { addDays, isBusinessDay, FixedHolidayCalendar, NO_HOLIDAYS } from "./cal
 export type { HolidayCalendar } from "./calendar/businessDayCalendar.ts";
 export { FileCaseEventStore } from "./case/caseStore.ts";
 export { evaluateFixture, evaluateFixtureFile } from "./cli/evaluate.ts";
+export { resolveCase, resolveCaseFile } from "./cli/resolveCase.ts";
+export type { ResolveCaseInput, ResolveCaseResult, SourceToAcquire, SourceProvenance } from "./cli/resolveCase.ts";
