@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "55ca2257b0aec26fe467b3f065e31b62bfffaa61",
+  "branch": "claude/authority-conformance-integration",
+  "baseline": {
+    "typecheck": "pass",
+    "build": "pass",
+    "tests": "128 pass / 0 fail"
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Canonical full-pipeline integration",
+      "status": "verified",
+      "items": [
+        {
+          "id": "P0.1",
+          "desc": "Generalized quote->warrant resolution shared by all three claim kinds",
+          "status": "verified"
+        },
+        {
+          "id": "P0.2",
+          "desc": "Raw (span-free) proposal path for source relationships",
+          "status": "verified"
+        },
+        {
+          "id": "P0.3",
+          "desc": "Raw (span-free) proposal path for conformance rules",
+          "status": "verified"
+        },
+        {
+          "id": "P0.4",
+          "desc": "Authority gate applied to policy rules, not just conformance rules",
+          "status": "verified"
+        },
+        {
+          "id": "P0.5",
+          "desc": "analyzeCase() single production boundary + `recourse analyze` CLI",
+          "status": "verified"
+        },
+        {
+          "id": "P0.6",
+          "desc": "v0.1 `recourse resolve` contract preserved unchanged",
+          "status": "verified"
+        },
+        {
+          "id": "P0.7",
+          "desc": "End-to-end tests proving the full chain",
+          "status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "P1a",
+      "name": "Deterministic procedural forecast",
+      "status": "not_started",
+      "items": [
+        {
+          "id": "P1a.1",
+          "desc": "NO_NEW_EVENTS forecast at explicit future evaluationAt",
+          "status": "not_started"
+        },
+        {
+          "id": "P1a.2",
+          "desc": "EXPLICIT_SCENARIO forecast over caller-supplied hypothetical events",
+          "status": "not_started"
+        },
+        {
+          "id": "P1a.3",
+          "desc": "Reuses existing trigger/calendar/obligation/deadline/conformance engines only",
+          "status": "not_started"
+        },
+        {
+          "id": "P1a.4",
+          "desc": "Purity: real event log never mutated",
+          "status": "not_started"
+        },
+        {
+          "id": "P1a.5",
+          "desc": "Outcome classification incl. uncertainty",
+          "status": "not_started"
+        },
+        {
+          "id": "P1a.6",
+          "desc": "Flagship UIC NO_NEW_EVENTS demonstration",
+          "status": "not_started"
+        }
+      ]
+    },
+    {
+      "id": "P1b",
+      "name": "Recourse Trace proof artifact",
+      "status": "not_started",
+      "items": [
+        {
+          "id": "P1b.1",
+          "desc": "Deterministic JSON trace with case/authority/sources/validation/procedure/observed/conformance/forecast/uncertainty/boundary",
+          "status": "not_started"
+        },
+        {
+          "id": "P1b.2",
+          "desc": "Human-readable Markdown rendering",
+          "status": "not_started"
+        },
+        {
+          "id": "P1b.3",
+          "desc": "Deterministic content hash",
+          "status": "not_started"
+        },
+        {
+          "id": "P1b.4",
+          "desc": "Structural tests guarding evidence presence",
+          "status": "not_started"
+        }
+      ]
+    },
+    {
+      "id": "P1c",
+      "name": "RecourseBench",
+      "status": "not_started",
+      "items": [
+        {
+          "id": "P1c.1",
+          "desc": "UIC academic grievance - two-sided clocks / derived trigger",
+          "status": "not_started"
+        },
+        {
+          "id": "P1c.2",
+          "desc": "Auburn academic integrity - closed appeal grounds + 5 business day filing",
+          "status": "not_started"
+        },
+        {
+          "id": "P1c.3",
+          "desc": "CWRU formal hearing - minimum notice lead time NONCONFORMANT",
+          "status": "not_started"
+        },
+        {
+          "id": "P1c.4",
+          "desc": "UMN complaint guidance - negative test, guidance never compiled to obligation",
+          "status": "not_started"
+        },
+        {
+          "id": "P1c.5",
+          "desc": "5th institution - actor-chained process (verify source first)",
+          "status": "not_started"
+        },
+        {
+          "id": "P1c.6",
+          "desc": "Benchmark runner + honest matrix report",
+          "status": "not_started"
+        }
+      ]
+    },
+    {
+      "id": "P1d",
+      "name": "Case-aware source/policy drift",
+      "status": "not_started",
+      "items": [
+        {
+          "id": "P1d.1",
+          "desc": "Drift primitive over pinned trace artifacts",
+          "status": "not_started"
+        },
+        {
+          "id": "P1d.2",
+          "desc": "Dependent-claim staleness marking",
+          "status": "not_started"
+        },
+        {
+          "id": "P1d.3",
+          "desc": "CLI callable without Grok",
+          "status": "not_started"
+        },
+        {
+          "id": "P1d.4",
+          "desc": "GROK drift routine handoff doc",
+          "status": "not_started"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Competition / Grok package",
+      "status": "not_started",
+      "items": [
+        {
+          "id": "P2.1",
+          "desc": "README trust-pipeline rewrite (only implemented stages claimed)",
+          "status": "not_started"
+        },
+        {
+          "id": "P2.2",
+          "desc": "Grok skill handoff for Resolve a Recourse Case",
+          "status": "not_started"
+        },
+        {
+          "id": "P2.3",
+          "desc": "SUBMISSION_PACK.md (storyboard, LinkedIn draft, checklist, claims ledger)",
+          "status": "not_started"
+        },
+        {
+          "id": "P2.4",
+          "desc": "Release gate + tag v1.0.0-competition",
+          "status": "not_started"
+        }
+      ]
+    }
+  ],
+  "verified": {
+    "typecheck": "pass",
+    "build": "pass",
+    "tests": "136 pass / 0 fail",
+    "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT"
+  }
+}

@@ -1,6 +1,7 @@
 import type { CandidateConformanceRule, ConformanceRuleError, ValidatedConformanceRule } from "../types/conformance.ts";
 import type { SourceStore } from "../warrant/sourceStore.ts";
 import type { AuthorityResolution } from "../authority/authorityResolver.ts";
+import { gateSourceId } from "../authority/authorityGate.ts";
 import { cerr, validateConformanceRule, type ConformanceWarrantOutcome } from "./conformanceValidator.ts";
 
 export type ConformancePipelineOutcome = ConformanceWarrantOutcome;
@@ -23,32 +24,9 @@ export function proposeConformanceRule(
   store: SourceStore,
   authority: AuthorityResolution
 ): ConformancePipelineOutcome {
-  if (authority.status !== "APPLICABLE") {
-    return {
-      status: "rejected",
-      errors: [
-        cerr(
-          candidate.id,
-          "sourceId",
-          `authority for this scope is not resolved (status: ${authority.status}) -- no conformance rule may be compiled until a human resolves the governing source`
-        ),
-      ],
-    };
-  }
-
-  const allowedSourceIds = new Set([authority.governingSourceId, ...authority.supportingSourceIds]);
-
-  if (!candidate.sourceId || !allowedSourceIds.has(candidate.sourceId)) {
-    return {
-      status: "rejected",
-      errors: [
-        cerr(
-          candidate.id,
-          "sourceId",
-          `source '${candidate.sourceId}' is not part of the authority-resolved governing/supporting set {${[...allowedSourceIds].join(", ")}} for this scope`
-        ),
-      ],
-    };
+  const gate = gateSourceId(authority, candidate.sourceId);
+  if (!gate.ok) {
+    return { status: "rejected", errors: [cerr(candidate.id, "sourceId", gate.reason)] };
   }
 
   return validateConformanceRule(candidate, store);

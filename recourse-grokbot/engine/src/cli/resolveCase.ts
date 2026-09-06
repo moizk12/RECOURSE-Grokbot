@@ -61,7 +61,7 @@ export interface ResolveCaseResult {
   readonly sources: readonly SourceProvenance[];
 }
 
-function toProvenance(source: SourceArtifact): SourceProvenance {
+export function toProvenance(source: SourceArtifact): SourceProvenance {
   return {
     sourceId: source.sourceId,
     requestedUrl: source.requestedUrl,
