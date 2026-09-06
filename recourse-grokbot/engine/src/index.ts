@@ -77,3 +77,13 @@ export type { RawConformanceProposal, RawConformanceOutcome, RawConformanceBatch
 export { proposeGatedRawRule, proposeGatedRawRules } from "./warrant/gatedRawProposal.ts";
 export { analyzeCase, analyzeCaseFile } from "./cli/analyzeCase.ts";
 export type { AnalyzeCaseInput, AnalyzeCaseOptions, AnalyzeCaseResult } from "./cli/analyzeCase.ts";
+export { forecastScenario, forecastScenarios } from "./forecast/forecast.ts";
+export type {
+  ForecastScenario,
+  ForecastScenarioKind,
+  ForecastInputs,
+  ForecastPoint,
+  ForecastOutcome,
+  ForecastChange,
+  ForecastError,
+} from "./forecast/forecast.ts";

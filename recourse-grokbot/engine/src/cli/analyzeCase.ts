@@ -19,6 +19,7 @@ import { CaseEventLog } from "../case/eventLog.ts";
 import { computeCaseState } from "../case/caseTwin.ts";
 import { detectDeviations } from "../deviation/detector.ts";
 import { FixedHolidayCalendar } from "../calendar/businessDayCalendar.ts";
+import { forecastScenarios, type ForecastPoint, type ForecastScenario } from "../forecast/forecast.ts";
 import type { SourceProvenance, SourceToAcquire } from "./resolveCase.ts";
 import { toProvenance } from "./resolveCase.ts";
 
@@ -78,6 +79,13 @@ export interface AnalyzeCaseInput {
   readonly rawProposals?: RawClaimProposal[];
   readonly rawConformanceRules?: RawConformanceProposal[];
   readonly events: CaseEvent[];
+  /**
+   * Optional deterministic forecast scenarios, evaluated after the
+   * present-tense analysis against the same validated procedure, calendar and
+   * conformance rules. Every hypothetical event in a scenario is
+   * caller-supplied; nothing in this engine invents one.
+   */
+  readonly forecast?: ForecastScenario[];
 }
 
 export interface AnalyzeCaseOptions {
@@ -111,6 +119,7 @@ export interface AnalyzeCaseResult {
   readonly caseState: ReturnType<typeof computeCaseState>;
   readonly conformance: readonly ConformanceResult[];
   readonly deviations: ReturnType<typeof detectDeviations>;
+  readonly forecast: readonly ForecastPoint[];
 }
 
 export async function analyzeCase(
@@ -168,6 +177,23 @@ export async function analyzeCase(
     sourceAmbiguities: input.sourceAmbiguities ?? [],
   });
 
+  // 14. Forecast. Reuses the same procedure, calendar, conformance rules and
+  // evaluators as the present-tense analysis above -- there is no second
+  // deadline engine, and the real event log is never mutated.
+  const forecast = forecastScenarios(
+    {
+      procedure,
+      log,
+      conformanceRules: conformanceRules.validated,
+      calendar,
+      baselineEvaluationAt: input.evaluationAt,
+      conflicts,
+      rejectedRuleErrors: rules.errors,
+      sourceAmbiguities: input.sourceAmbiguities ?? [],
+    },
+    input.forecast ?? []
+  );
+
   return {
     caseId: input.caseId,
     evaluationAt: input.evaluationAt,
@@ -196,6 +222,7 @@ export async function analyzeCase(
     caseState,
     conformance,
     deviations,
+    forecast,
   };
 }
 

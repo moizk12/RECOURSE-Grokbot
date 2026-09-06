@@ -58,27 +58,27 @@
         {
           "id": "P1a.1",
           "desc": "NO_NEW_EVENTS forecast at explicit future evaluationAt",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1a.2",
           "desc": "EXPLICIT_SCENARIO forecast over caller-supplied hypothetical events",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1a.3",
           "desc": "Reuses existing trigger/calendar/obligation/deadline/conformance engines only",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1a.4",
           "desc": "Purity: real event log never mutated",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1a.5",
           "desc": "Outcome classification incl. uncertainty",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1a.6",
@@ -209,7 +209,7 @@
   "verified": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "136 pass / 0 fail",
+    "tests": "147 pass / 0 fail",
     "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT"
   }
 }
