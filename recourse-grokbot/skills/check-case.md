@@ -1,5 +1,12 @@
 # Skill: check-case
 
+> **Status: superseded for the engine-backed path.** This Skill was written before the
+> deterministic engine existed, and describes the Bot compiling the policy IR and computing
+> deadlines itself. The current contract is [`resolve-recourse-case.md`](resolve-recourse-case.md),
+> where the Bot only proposes quoted claims and `recourse analyze` does the capture, verification,
+> authority resolution, and arithmetic. This file is kept for the case-lifecycle reasoning it
+> documents (`SAFETY.md` boundaries, refusal states, opt-in narrative rules), which still holds.
+
 **Trigger:** (a) a student follows up on an existing case ("here's the doctor's note," "I submitted it," "any update?"), or (b) invoked by the `case-watch` Routine on its scheduled sweep.
 
 **Owns:** every state transition after `PROCEDURE_VERIFIED` — evidence updates, deadline re-checks, source re-verification, `SUBMITTED`/`AWAITING_INSTITUTION`/`INSTITUTION_TIMEOUT`/`ESCALATION_AVAILABLE`/`CLOSED`.

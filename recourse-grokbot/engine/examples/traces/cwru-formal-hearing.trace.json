@@ -1,0 +1,186 @@
+{
+  "traceVersion": 1,
+  "case": {
+    "caseId": "cwru-formal-hearing-demo",
+    "evaluationAt": "2026-03-24T00:00:00Z",
+    "dataMarker": "synthetic case data; real, live-acquired institutional source"
+  },
+  "authority": {
+    "query": {
+      "institution": "Case Western Reserve University",
+      "decisionType": "student_conduct_formal_hearing",
+      "asOf": "2026-03-24T00:00:00Z"
+    },
+    "status": "APPLICABLE",
+    "reason": "'cwru-formal-hearing' is the only source matching this scope with no unresolved competing claim",
+    "governingSourceId": "cwru-formal-hearing",
+    "supportingSourceIds": [],
+    "candidateSourceIds": [],
+    "declaredSources": [
+      {
+        "sourceId": "cwru-formal-hearing",
+        "institution": "Case Western Reserve University",
+        "authorityLevel": "campus_wide",
+        "scope": {
+          "institution": "Case Western Reserve University",
+          "decisionTypes": [
+            "student_conduct_formal_hearing"
+          ]
+        },
+        "effective": {
+          "effectiveDate": "2026-08-21"
+        }
+      }
+    ],
+    "validatedLineage": []
+  },
+  "sources": [
+    {
+      "sourceId": "cwru-formal-hearing",
+      "requestedUrl": "https://case.edu/studentlife/conduct/university-code-conduct/procedures/formal-hearing-process",
+      "finalUrl": "https://case.edu/studentlife/conduct/university-code-conduct/procedures/formal-hearing-process",
+      "retrievedAt": "2026-09-06T10:10:31.105Z",
+      "contentType": "text/html; charset=UTF-8",
+      "rawBytesHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c",
+      "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c",
+      "extractor": {
+        "name": "identity",
+        "version": "1"
+      }
+    }
+  ],
+  "validation": {
+    "validatedClaims": [
+      {
+        "claimId": "cwru-hearing-notice-lead-time",
+        "kind": "conformance_rule",
+        "sourceId": "cwru-formal-hearing",
+        "claimType": "directly_stated",
+        "quotedText": "The hearing date, time and location will be communicated to the respondents at least five business days prior to the hearing.",
+        "span": {
+          "start": 33460,
+          "end": 33585
+        },
+        "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c"
+      },
+      {
+        "claimId": "cwru-information-lead-time",
+        "kind": "conformance_rule",
+        "sourceId": "cwru-formal-hearing",
+        "claimType": "directly_stated",
+        "quotedText": "Information will be available at least five business days prior to the hearing.",
+        "span": {
+          "start": 33825,
+          "end": 33904
+        },
+        "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c"
+      }
+    ],
+    "rejectedClaims": [],
+    "needsReviewClaims": []
+  },
+  "procedure": {
+    "actors": [
+      "institution"
+    ],
+    "obligations": [],
+    "advisoryRules": [],
+    "eligibilityGrounds": [],
+    "eligibility": {
+      "result": "undetermined",
+      "reason": "no ground has been asserted yet"
+    },
+    "conflicts": []
+  },
+  "observedCase": {
+    "appendOnly": true,
+    "events": [
+      {
+        "eventId": "cw-e1",
+        "type": "case_opened",
+        "occurredAt": "2026-03-16T09:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      },
+      {
+        "eventId": "cw-e2",
+        "type": "hearing_notice_sent",
+        "occurredAt": "2026-03-20T09:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      },
+      {
+        "eventId": "cw-e3",
+        "type": "relevant_information_disclosed",
+        "occurredAt": "2026-03-20T14:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      },
+      {
+        "eventId": "cw-e4",
+        "type": "hearing_held",
+        "occurredAt": "2026-03-23T09:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      }
+    ]
+  },
+  "conformance": [
+    {
+      "ruleId": "cwru-hearing-notice-lead-time",
+      "actor": "institution",
+      "expected": "at least 5 business_day(s) must elapse between \"hearing_notice_sent\" and \"hearing_held\"",
+      "observedEvents": [
+        {
+          "eventId": "cw-e2",
+          "type": "hearing_notice_sent",
+          "occurredAt": "2026-03-20T09:00:00Z"
+        },
+        {
+          "eventId": "cw-e4",
+          "type": "hearing_held",
+          "occurredAt": "2026-03-23T09:00:00Z"
+        }
+      ],
+      "status": "NONCONFORMANT",
+      "calculation": "\"hearing_held\" occurred at 2026-03-23T09:00:00Z, before the minimum 5 business_day(s) from \"hearing_notice_sent\" (2026-03-20T09:00:00Z) had elapsed (required on or after 2026-03-27)",
+      "warrant": {
+        "sourceId": "cwru-formal-hearing",
+        "quotedText": "The hearing date, time and location will be communicated to the respondents at least five business days prior to the hearing.",
+        "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c"
+      }
+    },
+    {
+      "ruleId": "cwru-information-lead-time",
+      "actor": "institution",
+      "expected": "at least 5 business_day(s) must elapse between \"relevant_information_disclosed\" and \"hearing_held\"",
+      "observedEvents": [
+        {
+          "eventId": "cw-e3",
+          "type": "relevant_information_disclosed",
+          "occurredAt": "2026-03-20T14:00:00Z"
+        },
+        {
+          "eventId": "cw-e4",
+          "type": "hearing_held",
+          "occurredAt": "2026-03-23T09:00:00Z"
+        }
+      ],
+      "status": "NONCONFORMANT",
+      "calculation": "\"hearing_held\" occurred at 2026-03-23T09:00:00Z, before the minimum 5 business_day(s) from \"relevant_information_disclosed\" (2026-03-20T14:00:00Z) had elapsed (required on or after 2026-03-27)",
+      "warrant": {
+        "sourceId": "cwru-formal-hearing",
+        "quotedText": "Information will be available at least five business days prior to the hearing.",
+        "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c"
+      }
+    }
+  ],
+  "forecast": [],
+  "uncertainty": [],
+  "boundary": "Recourse compares a published institutional procedure against the recorded events of one case. It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. A finding below states only whether an observed process matches a procedural rule that was validated against quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than resolved in either party's favour. This is a procedural record, not legal advice.",
+  "traceHash": "sha256:65d3015aca069dd155d44a86e82c7431db7f9520d55924dfaf842ce7c7a2df4d"
+}

@@ -1,5 +1,15 @@
 # Adversarial Evaluation Corpus
 
+> **Not RecourseBench.** This directory is the original hand-written *scenario* corpus from the
+> specification pass: ten adversarial case descriptions used to reason about what the engine must
+> refuse. It is prose, not an executable suite, and its quotes carry the provenance caveat below.
+>
+> The executable benchmark is **RecourseBench**, at `engine/bench/`. Its five sources are fetched
+> live through the engine's own `acquireSource()` and pinned with both raw-bytes and canonical-text
+> hashes, every quote is verified character-for-character against those captures, and it runs with
+> `npm run bench`. Nothing in this directory is snippet-sourced *and* executable; do not read the
+> caveat below as applying to RecourseBench.
+
 Ten cases, each pairing a **real, public, official university policy** with an **entirely synthetic student**. No real student's facts, name, or record appear anywhere in this corpus. Institutions and policy language are real and cited; every "student" is invented for this evaluation.
 
 **Provenance caveat (applies to every case below, not repeated per-file):** every quoted rule and every URL here was located via web search against the institution's own domain; this research environment's network egress policy blocked direct full-page fetches of every `.edu`/`.ac.uk` URL attempted (`EGRESS_BLOCKED` on every domain tried, including a control fetch of `en.wikipedia.org`, confirming it's an environment-wide restriction and not domain-specific). Quotes below are therefore **search-engine-snippet-sourced, not raw-HTML-verified**. Each case's `verification_status` is accordingly `search_snippet_only`. Before any of this corpus is used to grade a live Recourse Bot, the Bot's own (unblocked) browser tool must independently re-fetch and re-hash every cited URL — that re-fetch is itself part of what each benchmark is testing (a Bot that reports `full_page_fetch` from a page it never actually rendered has already failed).

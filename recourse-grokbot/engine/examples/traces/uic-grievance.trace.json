@@ -1,0 +1,287 @@
+{
+  "traceVersion": 1,
+  "case": {
+    "caseId": "uic-grievance-demo",
+    "evaluationAt": "2026-03-10T00:00:00Z",
+    "dataMarker": "synthetic case data; real, live-acquired institutional source"
+  },
+  "authority": {
+    "query": {
+      "institution": "University of Illinois Chicago",
+      "decisionType": "academic_grievance",
+      "asOf": "2026-03-10T00:00:00Z"
+    },
+    "status": "APPLICABLE",
+    "reason": "'uic-academic-grievance' is the only source matching this scope with no unresolved competing claim",
+    "governingSourceId": "uic-academic-grievance",
+    "supportingSourceIds": [],
+    "candidateSourceIds": [],
+    "declaredSources": [
+      {
+        "sourceId": "uic-academic-grievance",
+        "institution": "University of Illinois Chicago",
+        "authorityLevel": "campus_wide",
+        "scope": {
+          "institution": "University of Illinois Chicago",
+          "decisionTypes": [
+            "academic_grievance"
+          ]
+        },
+        "effective": {
+          "effectiveDate": "2017-04-27",
+          "versionId": "Sept 2019 forms packet"
+        }
+      }
+    ],
+    "validatedLineage": []
+  },
+  "sources": [
+    {
+      "sourceId": "uic-academic-grievance",
+      "requestedUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+      "finalUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+      "retrievedAt": "2026-09-06T10:10:29.906Z",
+      "contentType": "application/pdf",
+      "rawBytesHash": "sha256:2ff5a5abbc2553879d3d8201de20a10ae646a114e51eaa09a9f2c132c075477c",
+      "contentHash": "sha256:3cfacf12cd43bf0d68a4f18b39ab1b82c1492a26c93935b6fc90c7fb99fe2577",
+      "extractor": {
+        "name": "pdf-parse",
+        "version": "2.4.5"
+      }
+    }
+  ],
+  "validation": {
+    "validatedClaims": [
+      {
+        "claimId": "uic-ao-decision",
+        "kind": "policy_rule",
+        "sourceId": "uic-academic-grievance",
+        "claimType": "directly_stated",
+        "quotedText": "The Administrative Officer’s decision must be issued in\nwriting, within ten (10) days following their receipt of the Academic Grievance.",
+        "span": {
+          "start": 14034,
+          "end": 14170
+        },
+        "contentHash": "sha256:3cfacf12cd43bf0d68a4f18b39ab1b82c1492a26c93935b6fc90c7fb99fe2577"
+      },
+      {
+        "claimId": "uic-student-request-hearing",
+        "kind": "policy_rule",
+        "sourceId": "uic-academic-grievance",
+        "claimType": "directly_stated",
+        "quotedText": "Limitations imposed upon the Grievant for filing appeals of\ndecisions will be calculated from the date that any decision is received by the Grievant,\nor is due, whichever date is earlier.",
+        "span": {
+          "start": 11045,
+          "end": 11232
+        },
+        "contentHash": "sha256:3cfacf12cd43bf0d68a4f18b39ab1b82c1492a26c93935b6fc90c7fb99fe2577"
+      }
+    ],
+    "rejectedClaims": [],
+    "needsReviewClaims": []
+  },
+  "procedure": {
+    "actors": [
+      "institution",
+      "student"
+    ],
+    "obligations": [
+      {
+        "obligationId": "uic-student-request-hearing",
+        "party": "student",
+        "actor": "student",
+        "action": "request_formal_hearing",
+        "deonticForce": "MUST",
+        "trigger": "grievance_filed",
+        "deadline": {
+          "type": "derived",
+          "amount": 10,
+          "unit": "business_day",
+          "combinator": "earliest",
+          "anchors": [
+            {
+              "fromEvent": "decision_notice_received"
+            },
+            {
+              "fromObligationDue": "uic-ao-decision"
+            }
+          ]
+        },
+        "dueAt": "2026-03-30",
+        "status": "pending",
+        "reason": "deadline has not yet passed",
+        "sourceUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+        "sourceSpan": "Limitations imposed upon the Grievant for filing appeals of\ndecisions will be calculated from the date that any decision is received by the Grievant,\nor is due, whichever date is earlier."
+      },
+      {
+        "obligationId": "uic-ao-decision",
+        "party": "institution",
+        "actor": "institution",
+        "action": "issue_administrative_officer_decision",
+        "deonticForce": "MUST",
+        "trigger": "grievance_filed",
+        "deadline": {
+          "type": "relative",
+          "amount": 10,
+          "unit": "business_day",
+          "fromEvent": "grievance_filed"
+        },
+        "dueAt": "2026-03-16",
+        "status": "pending",
+        "reason": "deadline has not yet passed",
+        "sourceUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+        "sourceSpan": "The Administrative Officer’s decision must be issued in\nwriting, within ten (10) days following their receipt of the Academic Grievance."
+      }
+    ],
+    "advisoryRules": [],
+    "eligibilityGrounds": [],
+    "eligibility": {
+      "result": "undetermined",
+      "reason": "no ground has been asserted yet"
+    },
+    "conflicts": []
+  },
+  "observedCase": {
+    "appendOnly": true,
+    "events": [
+      {
+        "eventId": "uic-e1",
+        "type": "case_opened",
+        "occurredAt": "2026-03-02T09:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      },
+      {
+        "eventId": "uic-e2",
+        "type": "grievance_filed",
+        "occurredAt": "2026-03-02T09:00:00Z",
+        "detail": {
+          "synthetic": true
+        }
+      }
+    ]
+  },
+  "conformance": [],
+  "forecast": [
+    {
+      "status": "evaluated",
+      "scenarioId": "through-institution-deadline",
+      "kind": "NO_NEW_EVENTS",
+      "evaluationAt": "2026-03-18T00:00:00Z",
+      "assumptions": [
+        "no party takes any further action; the university does not respond"
+      ],
+      "hypotheticalEventIds": [],
+      "outcome": "NEW_DEVIATION_DETECTED",
+      "changes": [
+        {
+          "kind": "obligation_status",
+          "obligationId": "uic-ao-decision",
+          "from": "pending",
+          "to": "missed"
+        }
+      ],
+      "caseState": {
+        "evaluationAt": "2026-03-18T00:00:00Z",
+        "obligations": [
+          {
+            "obligationId": "uic-student-request-hearing",
+            "party": "student",
+            "dueAt": "2026-03-30",
+            "status": "pending",
+            "reason": "deadline has not yet passed"
+          },
+          {
+            "obligationId": "uic-ao-decision",
+            "party": "institution",
+            "dueAt": "2026-03-16",
+            "status": "missed",
+            "reason": "deadline 2026-03-16 has passed with no recorded completion"
+          }
+        ],
+        "eligibility": {
+          "result": "undetermined",
+          "reason": "no ground has been asserted yet"
+        }
+      },
+      "conformance": [],
+      "deviations": [
+        {
+          "type": "NORMAL_WAITING",
+          "detail": "awaiting student obligation uic-student-request-hearing: deadline has not yet passed",
+          "relatedObligationId": "uic-student-request-hearing"
+        },
+        {
+          "type": "INSTITUTION_DEADLINE_EXCEEDED",
+          "detail": "deadline 2026-03-16 has passed with no recorded completion",
+          "relatedObligationId": "uic-ao-decision"
+        }
+      ]
+    },
+    {
+      "status": "evaluated",
+      "scenarioId": "through-student-deadline",
+      "kind": "NO_NEW_EVENTS",
+      "evaluationAt": "2026-04-02T00:00:00Z",
+      "assumptions": [
+        "no party takes any further action; the university still has not responded"
+      ],
+      "hypotheticalEventIds": [],
+      "outcome": "NEW_DEVIATION_DETECTED",
+      "changes": [
+        {
+          "kind": "obligation_status",
+          "obligationId": "uic-student-request-hearing",
+          "from": "pending",
+          "to": "missed"
+        },
+        {
+          "kind": "obligation_status",
+          "obligationId": "uic-ao-decision",
+          "from": "pending",
+          "to": "missed"
+        }
+      ],
+      "caseState": {
+        "evaluationAt": "2026-04-02T00:00:00Z",
+        "obligations": [
+          {
+            "obligationId": "uic-student-request-hearing",
+            "party": "student",
+            "dueAt": "2026-03-30",
+            "status": "missed",
+            "reason": "deadline 2026-03-30 has passed with no recorded completion"
+          },
+          {
+            "obligationId": "uic-ao-decision",
+            "party": "institution",
+            "dueAt": "2026-03-16",
+            "status": "missed",
+            "reason": "deadline 2026-03-16 has passed with no recorded completion"
+          }
+        ],
+        "eligibility": {
+          "result": "undetermined",
+          "reason": "no ground has been asserted yet"
+        }
+      },
+      "conformance": [],
+      "deviations": [
+        {
+          "type": "STUDENT_DEADLINE_EXCEEDED",
+          "detail": "deadline 2026-03-30 has passed with no recorded completion",
+          "relatedObligationId": "uic-student-request-hearing"
+        },
+        {
+          "type": "INSTITUTION_DEADLINE_EXCEEDED",
+          "detail": "deadline 2026-03-16 has passed with no recorded completion",
+          "relatedObligationId": "uic-ao-decision"
+        }
+      ]
+    }
+  ],
+  "uncertainty": [],
+  "boundary": "Recourse compares a published institutional procedure against the recorded events of one case. It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. A finding below states only whether an observed process matches a procedural rule that was validated against quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than resolved in either party's favour. This is a procedural record, not legal advice.",
+  "traceHash": "sha256:b625456575b8d4a082da54c14604ac7f08df1f4270d915c83dc6172607580b54"
+}

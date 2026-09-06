@@ -1,0 +1,115 @@
+{
+  "caseId": "uic-grievance-demo",
+  "evaluationAt": "2026-03-10T00:00:00Z",
+  "dataMarker": "synthetic case data; real, live-acquired institutional source",
+  "sourcesToAcquire": [
+    {
+      "sourceId": "uic-academic-grievance",
+      "requestedUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf"
+    }
+  ],
+  "policySources": [
+    {
+      "sourceId": "uic-academic-grievance",
+      "institution": "University of Illinois Chicago",
+      "authorityLevel": "campus_wide",
+      "scope": {
+        "institution": "University of Illinois Chicago",
+        "decisionTypes": ["academic_grievance"]
+      },
+      "effective": { "effectiveDate": "2017-04-27", "versionId": "Sept 2019 forms packet" }
+    }
+  ],
+  "authorityQuery": {
+    "institution": "University of Illinois Chicago",
+    "decisionType": "academic_grievance"
+  },
+  "rawProposals": [
+    {
+      "rule": {
+        "id": "uic-ao-decision",
+        "policyId": "uic-academic-grievance",
+        "kind": "obligation",
+        "provenance": {
+          "sourceUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+          "retrievedAt": "2026-03-02T00:00:00Z",
+          "sourceSpan": "The Administrative Officer's decision must be issued in writing, within ten (10) days following their receipt of the Academic Grievance.",
+          "actor": "institution"
+        },
+        "actor": "institution",
+        "action": "issue_administrative_officer_decision",
+        "trigger": { "eventType": "grievance_filed" },
+        "conditions": [],
+        "deonticForce": "MUST",
+        "deadline": {
+          "type": "relative",
+          "amount": 10,
+          "unit": "business_day",
+          "fromEvent": "grievance_filed"
+        }
+      },
+      "sourceId": "uic-academic-grievance",
+      "quotedText": "The Administrative Officer’s decision must be issued in\nwriting, within ten (10) days following their receipt of the Academic Grievance.",
+      "claimType": "directly_stated"
+    },
+    {
+      "rule": {
+        "id": "uic-student-request-hearing",
+        "policyId": "uic-academic-grievance",
+        "kind": "obligation",
+        "provenance": {
+          "sourceUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
+          "retrievedAt": "2026-03-02T00:00:00Z",
+          "sourceSpan": "Limitations imposed upon the Grievant for filing appeals of decisions will be calculated from the date that any decision is received by the Grievant, or is due, whichever date is earlier.",
+          "actor": "student"
+        },
+        "actor": "student",
+        "action": "request_formal_hearing",
+        "trigger": { "eventType": "grievance_filed" },
+        "conditions": [],
+        "deonticForce": "MUST",
+        "deadline": {
+          "type": "derived",
+          "amount": 10,
+          "unit": "business_day",
+          "combinator": "earliest",
+          "anchors": [
+            { "fromEvent": "decision_notice_received" },
+            { "fromObligationDue": "uic-ao-decision" }
+          ]
+        }
+      },
+      "sourceId": "uic-academic-grievance",
+      "quotedText": "Limitations imposed upon the Grievant for filing appeals of\ndecisions will be calculated from the date that any decision is received by the Grievant,\nor is due, whichever date is earlier.",
+      "claimType": "directly_stated"
+    }
+  ],
+  "events": [
+    {
+      "eventId": "uic-e1",
+      "type": "case_opened",
+      "occurredAt": "2026-03-02T09:00:00Z",
+      "detail": { "synthetic": true }
+    },
+    {
+      "eventId": "uic-e2",
+      "type": "grievance_filed",
+      "occurredAt": "2026-03-02T09:00:00Z",
+      "detail": { "synthetic": true }
+    }
+  ],
+  "forecast": [
+    {
+      "id": "through-institution-deadline",
+      "kind": "NO_NEW_EVENTS",
+      "evaluationAt": "2026-03-18T00:00:00Z",
+      "assumptions": ["no party takes any further action; the university does not respond"]
+    },
+    {
+      "id": "through-student-deadline",
+      "kind": "NO_NEW_EVENTS",
+      "evaluationAt": "2026-04-02T00:00:00Z",
+      "assumptions": ["no party takes any further action; the university still has not responded"]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "caseId": "cwru-formal-hearing-demo",
+  "evaluationAt": "2026-03-24T00:00:00Z",
+  "dataMarker": "synthetic case data; real, live-acquired institutional source",
+  "sourcesToAcquire": [
+    {
+      "sourceId": "cwru-formal-hearing",
+      "requestedUrl": "https://case.edu/studentlife/conduct/university-code-conduct/procedures/formal-hearing-process"
+    }
+  ],
+  "policySources": [
+    {
+      "sourceId": "cwru-formal-hearing",
+      "institution": "Case Western Reserve University",
+      "authorityLevel": "campus_wide",
+      "scope": {
+        "institution": "Case Western Reserve University",
+        "decisionTypes": [
+          "student_conduct_formal_hearing"
+        ]
+      },
+      "effective": {
+        "effectiveDate": "2026-08-21"
+      }
+    }
+  ],
+  "authorityQuery": {
+    "institution": "Case Western Reserve University",
+    "decisionType": "student_conduct_formal_hearing"
+  },
+  "rawConformanceRules": [
+    {
+      "rule": {
+        "id": "cwru-hearing-notice-lead-time",
+        "sourceId": "cwru-formal-hearing",
+        "actor": "institution",
+        "constraint": {
+          "kind": "minimum_lead_time",
+          "anchorEventType": "hearing_notice_sent",
+          "targetEventType": "hearing_held",
+          "minimum": {
+            "amount": 5,
+            "unit": "business_day"
+          }
+        }
+      },
+      "quotedText": "The hearing date, time and location will be communicated to the respondents at least five business days prior to the hearing.",
+      "claimType": "directly_stated"
+    },
+    {
+      "rule": {
+        "id": "cwru-information-lead-time",
+        "sourceId": "cwru-formal-hearing",
+        "actor": "institution",
+        "constraint": {
+          "kind": "minimum_lead_time",
+          "anchorEventType": "relevant_information_disclosed",
+          "targetEventType": "hearing_held",
+          "minimum": {
+            "amount": 5,
+            "unit": "business_day"
+          }
+        }
+      },
+      "quotedText": "Information will be available at least five business days prior to the hearing.",
+      "claimType": "directly_stated"
+    }
+  ],
+  "events": [
+    {
+      "eventId": "cw-e1",
+      "type": "case_opened",
+      "occurredAt": "2026-03-16T09:00:00Z",
+      "detail": {
+        "synthetic": true
+      }
+    },
+    {
+      "eventId": "cw-e2",
+      "type": "hearing_notice_sent",
+      "occurredAt": "2026-03-20T09:00:00Z",
+      "detail": {
+        "synthetic": true
+      }
+    },
+    {
+      "eventId": "cw-e3",
+      "type": "relevant_information_disclosed",
+      "occurredAt": "2026-03-20T14:00:00Z",
+      "detail": {
+        "synthetic": true
+      }
+    },
+    {
+      "eventId": "cw-e4",
+      "type": "hearing_held",
+      "occurredAt": "2026-03-23T09:00:00Z",
+      "detail": {
+        "synthetic": true
+      }
+    }
+  ]
+}

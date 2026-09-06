@@ -1,5 +1,12 @@
 # Skill: open-case
 
+> **Status: superseded for the engine-backed path.** This Skill was written before the
+> deterministic engine existed, and describes the Bot compiling the policy IR and computing
+> deadlines itself. The current contract is [`resolve-recourse-case.md`](resolve-recourse-case.md),
+> where the Bot only proposes quoted claims and `recourse analyze` does the capture, verification,
+> authority resolution, and arithmetic. This file is kept for the case-lifecycle reasoning it
+> documents (`SAFETY.md` boundaries, refusal states, opt-in narrative rules), which still holds.
+
 **Trigger:** Student provides an institution name and a description of an adverse academic/administrative decision (dismissal, suspension, SAP denial, grievance-eligible incident, etc.), redacted or synthetic. This Skill runs exactly once per new case.
 
 **Owns:** `DISCOVERED` → `PROCEDURE_VERIFIED` (or a `BLOCKED_*` state) → initial `ELIGIBLE`/`INELIGIBLE`/`EVIDENCE_INCOMPLETE` screen.

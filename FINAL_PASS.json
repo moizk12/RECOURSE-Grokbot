@@ -187,17 +187,17 @@
         {
           "id": "P2.1",
           "desc": "README trust-pipeline rewrite (only implemented stages claimed)",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P2.2",
           "desc": "Grok skill handoff for Resolve a Recourse Case",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P2.3",
           "desc": "SUBMISSION_PACK.md (storyboard, LinkedIn draft, checklist, claims ledger)",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P2.4",
@@ -213,7 +213,9 @@
     "tests": "176 pass / 0 fail",
     "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT",
     "benchmark": "28 properties across 5 institutions, 28 as expected, 0 unexpected",
-    "driftRun": "recourse drift against the live CWRU page: UNCHANGED, exit 0"
+    "driftRun": "recourse drift against the live CWRU page: UNCHANGED, exit 0",
+    "flagshipUIC": "authority APPLICABLE; institution due 2026-03-16, student due 2026-03-30 (derived from due date, no decision ever received); forecast NEW_DEVIATION_DETECTED at 2026-03-18 and 2026-04-02",
+    "flagshipCWRU": "2 conformance rules NONCONFORMANT against live case.edu page; earliest permissible hearing 2026-03-27"
   },
   "sourceResearch": {
     "uic": "SUITABLE (PDF, days defined as business days)",
