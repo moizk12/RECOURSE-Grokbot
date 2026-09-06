@@ -1,5 +1,11 @@
 # DEMO_OPTIONS.md
 
+> **Status: HISTORICAL — superseded by `SUBMISSION_PACK.md` §A.** These three concepts were written
+> during the specification pass, before the engine and RecourseBench existed. The one canonical
+> storyboard, with the exact commands and the numbers verified against live runs, is
+> `SUBMISSION_PACK.md`. Where this file and that one differ, that one wins. Kept for the reasoning
+> about what makes a demo of a refusal legible.
+
 Three 60–90 second demo concepts for the Grok Bot Student Build Challenge submission, each using a synthetic student and a real public policy from `benchmarks/`. Ranked below by emotional impact, technical depth, reliability, and ease of recording — with an overall recommendation at the end.
 
 ---

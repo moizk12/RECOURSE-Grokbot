@@ -21,10 +21,26 @@ function werr(ruleId: string, field: string, message: string): WarrantError {
  * supply its own hash or offset because this type has no field for either.
  */
 export interface RawClaimProposal {
-  readonly rule: Omit<CandidatePolicyRule, "warrant">;
+  readonly rule: Omit<CandidatePolicyRule, "warrant" | "forceWarrant">;
   readonly sourceId: string;
   readonly quotedText: string;
   readonly claimType: ClaimType;
+  /**
+   * Optional SECOND quote from the same source, offered only to establish
+   * that the rule's `deonticForce` is binding. Institutions routinely split a
+   * requirement across sentences -- one states the period or the anchor, a
+   * different one states that the step is required at all -- and a proposer
+   * quoting the first honestly should not be forced to quote the wrong
+   * sentence to get an accurate rule through
+   * (validation/deonticSupport.ts is what reads this).
+   *
+   * It resolves through the same warrant/resolveQuote.ts as everything else:
+   * no hash, no offset, unique verbatim match or nothing. Supplying it can
+   * only ever add evidence. It cannot rescue a rule whose primary span is
+   * advisory, and a rule whose primary span already carries binding language
+   * has no need of it.
+   */
+  readonly forceEvidence?: { readonly quotedText: string; readonly claimType: ClaimType };
 }
 
 export type RawProposalOutcome =
@@ -53,7 +69,28 @@ export function resolveRawProposal(proposal: RawClaimProposal, store: SourceStor
     return { status: "needs_review", candidate: { ...proposal.rule }, reason: resolution.reason };
   }
 
-  return { status: "resolved", candidate: { ...proposal.rule, warrant: resolution.warrant } };
+  const candidate: CandidatePolicyRule = { ...proposal.rule, warrant: resolution.warrant };
+
+  // Force evidence, when offered, is held to exactly the same standard as the
+  // primary quote: same source, unique verbatim match, no proposer-supplied
+  // hash or offset. An unresolvable one is a rejection rather than a silent
+  // fallback to "no force evidence supplied" -- it was put forward as
+  // evidence and it did not check out.
+  const fe = proposal.forceEvidence;
+  if (!fe) return { status: "resolved", candidate };
+
+  const forceResolution = resolveQuote(proposal.sourceId, fe.quotedText, fe.claimType, store);
+  if (forceResolution.status === "unresolvable") {
+    return {
+      status: "rejected",
+      errors: [werr(ruleId, `rawProposal.forceEvidence.${forceResolution.field}`, forceResolution.reason)],
+    };
+  }
+  if (forceResolution.status === "ambiguous") {
+    return { status: "needs_review", candidate, reason: `forceEvidence: ${forceResolution.reason}` };
+  }
+
+  return { status: "resolved", candidate: { ...candidate, forceWarrant: forceResolution.warrant } };
 }
 
 /**

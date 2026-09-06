@@ -1,13 +1,23 @@
-# Recourse Engine (Phase 1)
+# Recourse Engine
 
 The deterministic case engine. No LLM calls anywhere in this package — every
 function here is a pure function over already-validated data, and it is
 designed so no consequential case conclusion can depend on unvalidated LLM
 output.
 
-Pipeline: `candidate policy rules → provenance validation → rule validation →
-procedure model → case events → deterministic case state → procedural
-deviation detection`.
+Full pipeline, as composed by `analyzeCase()`:
+
+```
+source acquisition → source lineage → authority resolution
+  → policy-rule proposals → authority gate → warrant + deontic-support check → rule validation
+  → procedure model → case event trace → Case Twin → deadlines
+  → conformance-rule proposals → authority gate → warrant check
+  → conformance check (incl. stated exceptions) → deviations → forecast → Recourse Trace
+```
+
+The older `recourse resolve` path (no authority layer) is still supported
+unchanged as the v0.1 contract; `analyze` is the superset and the one an
+external caller should target.
 
 ## Requirements
 
@@ -18,14 +28,21 @@ solely for `npm run typecheck`.
 ## Run
 
 ```bash
-npm install
+npm ci
 npm run typecheck
 npm test
-node src/cli/index.ts evaluate fixtures/uic-case.json
+npm run bench
+node src/cli/index.ts analyze examples/uic-grievance.json
 ```
+
+`test` and `bench` run offline against pinned sources. `analyze`, `trace`
+and `drift` fetch the live URLs named in their inputs.
 
 ## CLI commands
 
+- `recourse analyze <input.json>` — **the current full chain.** See `src/cli/analyzeCase.ts` and `GROK_HANDOFF.md`.
+- `recourse trace <input.json>` — the same analysis rendered as a Recourse Trace (Markdown, or `--json`). See `src/trace/recourseTrace.ts`.
+- `recourse drift <trace.json>` — re-acquires a stored trace's pinned sources and reports what needs revalidation. See `src/drift/sourceDrift.ts`.
 - `recourse evaluate <fixture.json>` — pre-warranted `candidateRules` + pre-captured `sources`, no network call. See `src/cli/evaluate.ts`.
 - `recourse resolve <input.json>` — the full untrusted-input boundary: live source acquisition (`sourcesToAcquire`) -> raw proposal resolution (`rawProposals`, the `RawClaimProposal` contract) -> warrant validation -> rule validation -> procedure model -> Case Twin -> deviations. This is the one stable entry point for an external caller (e.g. a Grok Bot skill) that has not yet fetched or warranted anything. See `src/cli/resolveCase.ts` and `GROK_HANDOFF.md` for the input/output contract; `fixtures/uic-case-raw.json` is a live-network runnable example.
 
@@ -40,7 +57,12 @@ src/calendar/        deterministic business-day/date engine
 src/procedure/       procedure model (obligations/evidence gates/escalation/terminal states) + conflict detection
 src/case/            append-only event log + Case Twin state computation
 src/deviation/       procedural deviation detection
-src/cli/             `recourse evaluate <fixture.json>`, `recourse resolve <input.json>`
+src/trace/           the Recourse Trace proof artifact (deterministic JSON + human-facing Markdown)
+src/drift/           source/policy drift over a pinned trace
+src/forecast/        deterministic procedural forecasting at explicit future instants
+src/cli/             `analyze`, `trace`, `drift`, `resolve`, `evaluate`
+bench/               RecourseBench: five real institutions, pinned sources, matrix report
+examples/            live-runnable analyze/trace inputs and the traces they produce
 test/                node:test suite — see file names for the specific adversarial claim each proves
 fixtures/            example case fixtures consumed by the CLI and the pipeline test
 ```
@@ -54,6 +76,23 @@ omitted trigger, an unevidenced `CLOSED` grounds list, or a malformed
 deadline all reject the rule rather than filling in a "reasonable
 assumption." There is no other constructor for a `ValidatedPolicyRule`, and
 nothing downstream accepts a `CandidatePolicyRule`.
+
+A verified span proves the quote EXISTS; it does not prove the quote SAYS
+what was claimed. `validation/deonticSupport.ts` closes that gap for the one
+dimension where it costs most — whether the rule is BINDING. It is a
+deterministic lexical modality check over the cited sentences, applied only
+to candidates claiming a binding force:
+
+- advisory-only evidence ("should", "may", "normally", "encouraged") is
+  REFUSED for a MUST/SHALL claim;
+- evidence with no modal verb at all, mixed modality, or the wrong polarity
+  is HELD FOR REVIEW, never guessed;
+- a proposal may supply a second verified quote as `forceEvidence` where the
+  provision stating the requirement is a different sentence from the one
+  stating the period or the anchor. It is checked to the identical standard,
+  and it cannot rescue a rule whose own span is advisory.
+
+It is explicitly not natural-language entailment, and the module says so.
 
 ## Which source governs
 
@@ -108,12 +147,22 @@ authority resolution:
   rule, however well warranted its own text is.
 - `conformance/conformanceChecker.ts#checkConformance` — compares one
   `ValidatedConformanceRule` against a `CaseEventLog` and returns
-  `CONFORMANT`, `NONCONFORMANT`, or `UNDETERMINED`. Fails closed toward
-  `UNDETERMINED`: absence of an event is only ever reported as
+  `CONFORMANT`, `NONCONFORMANT`, `UNDETERMINED` or `EXCEPTION_APPLIES`. Fails
+  closed toward `UNDETERMINED`: absence of an event is only ever reported as
   `NONCONFORMANT` once an actually-observed boundary or target event makes
   that conclusion unavoidable, never merely because time has passed with
   nothing logged.
+- Stated **exceptions**. A rule may carry a waiver the source itself attaches
+  to the requirement, with its own verified warrant and two named event
+  types: one that would establish the waiver applied, one that would rule it
+  out. A requirement that was not met resolves to `EXCEPTION_APPLIES` when
+  the first is observed, stays `NONCONFORMANT` when the second is, and
+  becomes `UNDETERMINED` when neither is. Absence of a recorded waiver is
+  never treated as evidence that no waiver was given.
 
-`test/conformance.test.ts` runs this against a benchmark modeled on Case
-Western Reserve University's Formal Hearing Process (five-business-day
-hearing notice; relevant information made available before the hearing).
+`test/conformance.test.ts` and `test/exceptions.test.ts` run this against a
+benchmark modeled on Case Western Reserve University's Formal Hearing Process
+(five-business-day hearing notice, the waiver the same list item attaches to
+it, and the separate requirement that relevant information be available
+before the hearing). `bench/cases/cwru-hearing-notice.ts` runs the same
+semantics against the live captured page.

@@ -1,5 +1,12 @@
 # POLICY_IR.md — Policy Intermediate Representation
 
+> **Design-pass document.** This describes the JSON-Schema policy IR in `schemas/policy.schema.json`
+> and the judgment calls behind its shape. It is not the executable contract: the types the engine
+> actually enforces are `engine/src/types/policy.ts`, `engine/src/types/authority.ts` and
+> `engine/src/types/conformance.ts`, and the input contract an external agent targets is
+> `engine/GROK_HANDOFF.md`. Where the two differ, the engine is authoritative — the reasoning here
+> still holds, and inline notes mark the places the implementation went further.
+
 Every institutional procedure Recourse touches is compiled from free-text public policy into this IR before any case logic runs against it. The IR is deliberately narrow: it captures only what is needed to gate eligibility, compute deadlines, and drive state transitions. It never captures persuasive content, and it never captures anything not traceable to a specific source passage.
 
 The JSON Schema is `schemas/policy.schema.json`. This document explains each section's purpose and the judgment calls behind its shape.

@@ -19,9 +19,24 @@ import { proposeConformanceRule, type ConformancePipelineOutcome } from "./confo
  * warrant/resolveQuote.ts.
  */
 export interface RawConformanceProposal {
-  readonly rule: Omit<CandidateConformanceRule, "warrant">;
+  readonly rule: Omit<CandidateConformanceRule, "warrant" | "exception">;
   readonly quotedText: string;
   readonly claimType: ClaimType;
+  /**
+   * An exception/waiver the source attaches to this requirement, proposed the
+   * same way everything else is: a description, the two event types that
+   * would settle it in either direction, and a verbatim quote. The quote
+   * resolves through warrant/resolveQuote.ts into a real warrant; the model
+   * supplies no hash and no offset here either.
+   */
+  readonly exception?: {
+    readonly id: string;
+    readonly description: string;
+    readonly establishedByEventType: string;
+    readonly negatedByEventType: string;
+    readonly quotedText: string;
+    readonly claimType: ClaimType;
+  };
 }
 
 export type RawConformanceOutcome = ConformancePipelineOutcome;
@@ -58,7 +73,42 @@ export function proposeRawConformanceRule(
     return { status: "needs_review", candidate: { ...rule }, reason: resolution.reason };
   }
 
-  return proposeConformanceRule({ ...rule, warrant: resolution.warrant }, store, authority);
+  const ex = proposal.exception;
+  if (!ex) {
+    return proposeConformanceRule({ ...rule, warrant: resolution.warrant }, store, authority);
+  }
+
+  // The exception's quote is resolved against the same source, to the same
+  // standard. An exception that cannot be verified is a rejection, not a
+  // silent drop back to "no exception" -- dropping it would restore the
+  // deterministic-violation finding the exception exists to qualify, which is
+  // the exact error this is here to prevent.
+  const exResolution = resolveQuote(rule.sourceId, ex.quotedText, ex.claimType, store);
+  if (exResolution.status === "unresolvable") {
+    return {
+      status: "rejected",
+      errors: [cerr(rule.id, `rawConformance.exception.${exResolution.field}`, exResolution.reason)],
+    };
+  }
+  if (exResolution.status === "ambiguous") {
+    return { status: "needs_review", candidate: { ...rule }, reason: `exception: ${exResolution.reason}` };
+  }
+
+  return proposeConformanceRule(
+    {
+      ...rule,
+      warrant: resolution.warrant,
+      exception: {
+        id: ex.id,
+        description: ex.description,
+        establishedByEventType: ex.establishedByEventType,
+        negatedByEventType: ex.negatedByEventType,
+        warrant: exResolution.warrant,
+      },
+    },
+    store,
+    authority
+  );
 }
 
 export interface RawConformanceBatchResult {

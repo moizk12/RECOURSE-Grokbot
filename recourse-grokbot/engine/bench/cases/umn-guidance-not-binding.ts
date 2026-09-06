@@ -97,6 +97,7 @@ export const umnGuidanceNotBinding: BenchCase = {
   notes: [
     "This is the suite's negative case. The document states in its own first paragraph: \"They do not establish procedural rights or impose obligations.\" It nonetheless contains hard numbers (\"within 10 business days\") that a naive extractor will read as binding deadlines.",
     "The page carries no effective or revision date -- only a print stamp. That is recorded in the source metadata as a known limitation: this document cannot be version-pinned the way the other four can.",
+    "Re-captured during the v1.0.1 release gate: the canonical text is byte-identical apart from a rotating Cloudflare email-obfuscation token in a mailto link, which changes the contentHash on every fetch while changing nothing in the policy. A drift report on this page is therefore expected to say CHANGED even when the procedure has not; that is precisely why drift reports a hash difference and requires revalidation rather than asserting that a rule changed.",
     "The referenced parent policy (toSourceId) is not itself captured here. The GUIDANCE_FOR edge is warranted by the guidance document's own disclaimer, which is the evidence that matters for this test.",
   ],
 
@@ -121,8 +122,10 @@ export const umnGuidanceNotBinding: BenchCase = {
       // Layer 2: even with no lineage edge asserted at all, honest modality
       // keeps a "should" out of the binding obligation set.
       modalityPreserved: { ...base, rawProposals: [advisoryProposal] },
-      // The shortcut, with no guidance edge: MUST asserted over "should" text.
-      // Recourse cannot detect this from the span alone -- see expectation.
+      // The shortcut, with no guidance edge at all: MUST asserted over
+      // "should" text. This used to compile -- a span check cannot see
+      // modality -- and is now refused by the deontic-support gate on the
+      // evidence alone, before authority resolution is even consulted.
       unguardedShortcut: { ...base, rawProposals: [bindingDeadlineProposal] },
     };
   },
@@ -172,18 +175,20 @@ export const umnGuidanceNotBinding: BenchCase = {
         ),
     },
     {
-      id: "umn-span-check-alone-is-insufficient",
+      id: "umn-must-over-should-refused-without-any-lineage",
       run: "unguardedShortcut",
       semanticFeature:
-        "Documented limit: warrant validation alone cannot detect a MUST asserted over SHOULD text; only the authority layer stops it",
+        "Deontic support: MUST asserted over SHOULD text is refused on the evidence alone, with no lineage edge and no authority ruling required",
       expected:
-        "With no GUIDANCE_FOR edge asserted, the rule DOES compile — which is why the guidance edge in the first run is load-bearing, and why this limitation is recorded rather than hidden",
+        "The rule is REJECTED and no obligation compiles, because the only modality in the cited sentence is \"should\" — the guidance edge in the first run remains load-bearing for whether the document governs at all, but it is no longer the only thing standing between this sentence and a fabricated institutional deadline",
       shortcutRisk:
-        "Claiming the warrant layer catches modality drift. It does not: the quoted span is genuinely present, and a deontic mismatch is a semantic judgement no span check can make.",
+        "Reading \"within 10 business days\" as a binding institutional deadline. Every existing check passes — the span is genuinely present, the source id is right, the hash is right — and the sentence still only says the decision SHOULD follow.",
       check: (r) =>
         expectTrue(
-          r.rules.validated.length === 1 && r.caseState.obligations.length === 1,
-          `${r.rules.validated.length} rule(s) compiled without the guidance edge — limitation confirmed, not a regression`
+          r.rules.validated.length === 0 &&
+            r.rules.rejected.length > 0 &&
+            r.caseState.obligations.length === 0,
+          `${r.rules.validated.length} validated, ${r.rules.rejected.length} rejected, ${r.caseState.obligations.length} obligation(s)`
         ),
     },
   ],

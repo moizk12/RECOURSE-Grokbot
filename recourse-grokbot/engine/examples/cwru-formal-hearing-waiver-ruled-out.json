@@ -1,7 +1,7 @@
 {
-  "caseId": "cwru-formal-hearing-demo",
+  "caseId": "cwru-formal-hearing-waiver-ruled-out-demo",
   "evaluationAt": "2026-03-24T00:00:00Z",
-  "dataMarker": "synthetic case data; real, live-acquired institutional source",
+  "dataMarker": "synthetic case data (the record affirmatively rules the notice waiver out); real, live-acquired institutional source",
   "sourcesToAcquire": [
     {
       "sourceId": "cwru-formal-hearing",
@@ -105,6 +105,15 @@
       "occurredAt": "2026-03-23T09:00:00Z",
       "detail": {
         "synthetic": true
+      }
+    },
+    {
+      "eventId": "cw-e5",
+      "type": "hearing_notice_waiver_declined",
+      "occurredAt": "2026-03-20T11:00:00Z",
+      "detail": {
+        "synthetic": true,
+        "note": "respondent was asked to waive the notice period and declined in writing"
       }
     }
   ]

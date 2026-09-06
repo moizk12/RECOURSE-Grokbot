@@ -19,16 +19,41 @@ screen comes from a real command run, not a slide.
 | **0:00–0:08** | A student's message: *"I filed an academic grievance at UIC on March 2nd. It's been three weeks and nobody has replied. Have I lost my appeal?"* | "Every university tells students their deadline. Almost none of them tell students the university has one too." |
 | **0:08–0:18** | Grok finds the authoritative UIC Student Academic Grievance Procedures PDF. Terminal: `recourse analyze examples/uic-grievance.json`. Source line appears with the live URL, `sha256:3cfacf12…`, extractor `pdf-parse v2.4.5`. | "Grok finds the procedure. Recourse fetches it itself and hashes it — so every claim after this points at a specific document, not a memory of one." |
 | **0:18–0:30** | `authority: APPLICABLE — uic-academic-grievance`. Then cut to the second run: same accurate quote, `decisionType: student_conduct_suspension` → `BLOCKED_SOURCE_UNAVAILABLE`, `0 rules compiled`. | "First it establishes which document actually governs *this* decision. Quote the right university's real policy for the wrong kind of decision and nothing compiles — the citation checks out, and it still refuses." |
-| **0:30–0:42** | Split view: the model proposes two rules. One resolves to a verbatim span, highlighted in the open PDF. The other — a fabricated "ten business days" — is rejected: `quoted text not found verbatim in captured source`. | "Every rule has to be a quote the engine can find, character for character, in the document it fetched. A confident paraphrase is not a rule." |
+| **0:30–0:42** | Split view: the model proposes three rules. Two resolve to verbatim spans, highlighted in the open PDF. The third — a made-up "expedited decision within three (3) business days" — is rejected: `quoted text not found verbatim in captured source`. | "Every rule has to be a quote the engine can find, character for character, in the document it fetched. A confident paraphrase is not a rule." |
 | **0:42–0:58** | The two obligations render side by side: **institution** `uic-ao-decision` due **2026-03-16**; **student** `uic-student-request-hearing` due **2026-03-30**. Cursor highlights the source clause in the PDF: *"…is received by the Grievant, or is due, whichever date is earlier."* | "Here's what the student couldn't see. Their appeal window doesn't start when a decision arrives — it starts when the decision was **due**. The university's silence didn't pause their clock. It started it." |
 | **0:58–1:10** | Forecast output: `2026-03-18 → NEW_DEVIATION_DETECTED: uic-ao-decision pending → missed`. Then `2026-04-02 → uic-student-request-hearing pending → missed`. | "And the university's own deadline was missed on March 16th. That's not a prediction about what they'll do — it's what the procedure they published already implies." |
 | **1:10–1:22** | `recourse trace` opens the Markdown Recourse Trace. Scroll past: source hashes → validated claims with quotes → the refused claim → the conformance finding → **What could not be determined**. | "It ends as a record, not an answer. Every source, every quote, every refusal, and an explicit list of what it *couldn't* determine — for a student to hand to an advisor." |
 | **1:22–1:30** | Black card: **Grok discovers, reads, proposes, explains. The deterministic engine validates and evaluates.** Below: *Students have deadlines. Universities do too.* | "The model is treated as an untrusted proposer. That's the whole design." |
 
-**Optional 10-second alternate ending** (if the CWRU case is the stronger hook for the audience):
+**On the fabricated rule, specifically:** the invented figure must be one the source genuinely does
+not contain. **Do not use "ten business days" for UIC.** UIC's procedure really does impose a
+10-day institutional deadline ("AO renders the decision within 10 days of receipt of the Academic
+Grievance", with the document defining days as business days), so presenting that as a fabrication
+would itself be the false claim. `examples/uic-grievance.json` therefore ships a third proposal
+asserting an "expedited decision within three (3) business days" — a figure that appears nowhere in
+the document, harmless if anyone repeats it, and verified rejected on a live run before this was
+written.
+
+**Optional 10-second alternate ending** (if the CWRU case is the stronger hook for the audience) —
+run `examples/cwru-formal-hearing-waiver-ruled-out.json`, where the record affirmatively establishes
+that no waiver was given:
 `cwru-hearing-notice-lead-time → NONCONFORMANT — "hearing_held" occurred 2026-03-23, before the
 minimum 5 business days from "hearing_notice_sent" (2026-03-20) had elapsed (required on or after
 2026-03-27)`.
+
+**Do not show the CWRU notice rule as an unqualified violation.** CWRU's own text attaches a waiver
+to that provision, so on the default input (`examples/cwru-formal-hearing.json`, where the record
+says nothing about a waiver) the correct finding is `UNDETERMINED` with the exception `UNRESOLVED`.
+The clean, unqualified `NONCONFORMANT` in that procedure is the **relevant-information** rule, which
+is a separate list item the waiver sentence does not reach. Lead with that one, or with the
+waiver-ruled-out input above. Never describe the CWRU notice requirement as non-waivable.
+
+**Optional 15-second beat on the deontic gate** (the strongest single refusal in the suite, and it
+uses a real document): Minnesota's complaint guidance says "The Dean's decision should follow
+promptly on receipt of the panel's recommendation, within 10 business days." Encoded as a `MUST`,
+with a verbatim-correct quote and the right source, it is **rejected** on the evidence alone —
+`deontic force 'MUST' is refused: the verified warrant span carries advisory modality and no binding
+modality`. See `npm run bench`, Minnesota row 4.
 
 **Do not show:** anything implying Recourse files an appeal, any real student data, any authenticated
 system, or any claim from the ledger below marked *PLANNED / DO NOT CLAIM*.
@@ -54,7 +79,15 @@ system, or any claim from the ledger below marked *PLANNED / DO NOT CLAIM*.
 > — It works out which document *governs* your decision. Quote the right university's real policy for
 > the wrong kind of decision and it compiles nothing.
 > — Every rule has to be a quote it can find character-for-character in a document it fetched and
-> hashed itself. No verbatim span, no rule.
+> hashed itself. No verbatim span, no rule — and a verbatim span still isn't enough to make a rule
+> binding. Quote a sentence that says a decision "should follow promptly, within 10 business days"
+> and encode it as a hard deadline, and it refuses: advisory language cannot become an obligation.
+>
+> — It reports what it can't decide. Case Western requires five business days' notice before a
+> conduct hearing — and says in the next sentence that a respondent may waive that notice. If the
+> record doesn't say whether a waiver was given, Recourse returns UNDETERMINED, not a violation. A
+> confident violation finding that turns out to have been waived doesn't just fail; it discredits
+> everything else in the same record.
 > — It computes both clocks. On a real UIC grievance procedure, a synthetic student's appeal window
 > resolved to a date even though no decision was ever received — because the policy says the window
 > runs from when a decision is received *or is due, whichever is earlier*. The university's silence
@@ -68,8 +101,8 @@ system, or any claim from the ledger below marked *PLANNED / DO NOT CLAIM*.
 > It refuses a lot, deliberately. If two policies both claim to govern your case and nothing in
 > either says which wins, it says so and stops. That's the honest answer.
 >
-> It does not write your appeal. Several universities penalise AI-authored appeal narrative — that's
-> the one place a language model actively hurts you.
+> It does not write your appeal. Some institutions prohibit or discourage AI-authored appeal content
+> outright — that's the one place a language model can actively work against you.
 >
 > Benchmarked against five real university procedures — UIC, Auburn, Case Western, Minnesota, and
 > Buffalo — including a negative case: Minnesota's complaint guidance says in its own first paragraph
@@ -101,6 +134,10 @@ is true.
       synthetic; no DePaul or authenticated-system data anywhere.
 - [ ] **Claims check**: every statement in the video and post traces to an *IMPLEMENTED + TESTED* row
       in ledger D.
+- [ ] **Fabricated-rule check**: the invented figure shown on screen is genuinely absent from the
+      source, re-verified on the day of recording. Never "ten business days" for UIC.
+- [ ] **Waiver check**: the CWRU notice requirement is never described as non-waivable, and any
+      NONCONFORMANT notice finding shown on screen comes from the waiver-ruled-out input.
 
 ---
 
@@ -127,12 +164,19 @@ Backed by code in this repository and by tests that run in `npm test` / `npm run
 | The UIC "received **or is due**, whichever is earlier" derived anchor | `test/derivedDeadlines.test.ts`; `bench/cases/uic-grievance.ts` |
 | Both parties' clocks are tracked; institutional deadlines produce their own deviations | `test/dualClocks.test.ts`; `bench/cases/uic-grievance.ts` |
 | Conformance fails closed: absence is UNDETERMINED until an observed event closes the window | `test/conformance.test.ts`; `bench/cases/cwru-hearing-notice.ts`, `buffalo-actor-chain.ts` |
-| The CWRU five-business-day notice case resolves NONCONFORMANT with a computed boundary date | `bench/cases/cwru-hearing-notice.ts`; `examples/traces/cwru-formal-hearing.trace.md` |
+| A binding force (MUST/SHALL) is refused when the cited span's only modality is advisory, and held for review when the span has no modal verb at all | `src/validation/deonticSupport.ts`; `test/deonticSupport.test.ts`; `bench/cases/umn-guidance-not-binding.ts`, `buffalo-actor-chain.ts` |
+| A second verified quote (`forceEvidence`) may supply the binding provision, is checked to the identical standard, and cannot rescue an advisory primary span | `test/deonticSupport.test.ts`; `bench/cases/uic-grievance.ts` |
+| A requirement the source itself makes waivable resolves to UNDETERMINED while the waiver is unresolved, EXCEPTION_APPLIES when a waiver is recorded, and NONCONFORMANT only once the record rules the waiver out | `src/conformance/conformanceChecker.ts`; `test/exceptions.test.ts`; `bench/cases/cwru-hearing-notice.ts` |
+| An unverifiable or inferred waiver is rejected rather than dropped back to "no exception" | `test/exceptions.test.ts`; `bench/cases/cwru-hearing-notice.ts` (`cwru-fabricated-waiver-rejected`) |
+| The CWRU five-business-day notice case resolves NONCONFORMANT with a computed boundary date **once the record rules the stated waiver out**; UNDETERMINED while it is unresolved | `bench/cases/cwru-hearing-notice.ts`; `examples/traces/cwru-formal-hearing-waiver-ruled-out.trace.md`, `examples/traces/cwru-formal-hearing.trace.md` |
+| The CWRU relevant-information lead time is a separate provision the waiver does not reach, and resolves NONCONFORMANT unqualified | `bench/cases/cwru-hearing-notice.ts` (`cwru-information-nonconformant`) |
 | Forecasting reuses the same deadline/conformance engines and never mutates the real log | `test/forecast.test.ts` (purity test) |
 | Forecast scenarios cannot contain engine-invented events | `src/forecast/forecast.ts` has no CaseEvent constructor; `test/forecast.test.ts` |
-| The Recourse Trace carries sources, hashes, warrants, findings, refusals, and uncertainty, with a deterministic content hash | `test/recourseTrace.test.ts` (15 structural tests) |
+| The Recourse Trace carries sources, hashes, warrants, findings, refusals, and uncertainty | `test/recourseTrace.test.ts` |
+| The Trace's content hash is deterministic for a fixed captured analysis: identical captured sources, case record and evaluation instant always produce the identical hash | `test/recourseTrace.test.ts` |
+| The human-facing Trace leads with the governing procedure, the findings, both parties' deadlines, what could not be determined, and an explicit "no remedy or outcome is inferred" — with every hash, span and refused claim kept in full below a divider | `test/recourseTrace.test.ts` (ordering test); `examples/traces/*.trace.md` |
 | Source drift detects changed / extractor-drifted / unavailable sources and marks dependent claims stale without re-deriving them | `test/sourceDrift.test.ts` |
-| RecourseBench: 28 properties across five real institutions | `npm run bench`; `test/bench.test.ts` |
+| RecourseBench: 32 properties across five real institutions | `npm run bench`; `test/bench.test.ts` |
 | The whole chain runs from one CLI command with no glue code | `src/cli/analyzeCase.ts`; `test/analyzeCase.test.ts` |
 
 ### IMPLEMENTED, NOT YET GROK-TESTED
@@ -143,7 +187,7 @@ Works, and has been run end-to-end from the CLI — but not yet driven by a live
 | --- | --- |
 | A Grok Bot can drive the full chain as a subprocess with no TypeScript glue | Contract specified in `engine/GROK_HANDOFF.md` and exercised via CLI with real inputs; not yet run from a deployed Bot. |
 | The Grok Skill instructions in `skills/` produce well-formed `analyze` input | Written against the current contract; not yet executed by a Bot. |
-| `recourse drift` as a scheduled routine | Primitive implemented and run live against the CWRU page (result: UNCHANGED). **No scheduled run has been performed** — see `routines/policy-drift.md`. |
+| `recourse drift` as a scheduled routine | Two different things, kept apart on purpose. The **engine primitive** is implemented, tested (`test/sourceDrift.test.ts`) and CLI-runnable with no model in the loop; it has been run live against the CWRU page (result: UNCHANGED). The **Grok Routine** that would run it on a schedule is specified in `routines/policy-drift.md` and **has never been executed**. Nothing in this repository is evidence of a scheduled run. |
 
 ### PLANNED / DO NOT CLAIM
 
@@ -153,9 +197,10 @@ Not implemented. These must not appear in the video, the post, or the Bot descri
 | --- | --- |
 | Detecting that a *rule* changed (as opposed to the document changing) | Drift reports a hash difference and requires revalidation. Inferring semantic change from a hash would be exactly the confident inference this system refuses. |
 | Automatic revalidation after drift | Revalidation means re-running the analysis and a human reviewing it. |
-| Detecting MUST asserted over SHOULD text via the warrant layer | A span check cannot catch modality drift; only the authority layer stops it. Recorded as a passing expectation in `bench/cases/umn-guidance-not-binding.ts` rather than hidden. |
+| General natural-language entailment between a source span and a proposed rule | The deontic-support gate is a lexical modality check over the cited sentences, and only for the binding/advisory dimension. It cannot tell whether a binding sentence in a quoted passage is about the same obligation the rule encodes. Stated in the module, in `engine/README.md`, and here. |
+| Discovering exceptions a proposer did not propose | An exception must be proposed and quoted like any other claim. Recourse does not scan a document for waivers on its own, so a requirement with an unmodelled exception can still produce a determined finding. |
+| A bare `traceHash` match across two independent live runs | The hash is content-addressed over one captured analysis and covers each capture's `retrievedAt`. Two live recaptures of the same unchanged page produce different hashes. `recourse drift` is what compares a pinned trace to the live sources. |
 | Academic-day calendars (session breaks, reading days, finals) | `FixedHolidayCalendar` takes a fixed holiday list. Noted in `bench/cases/buffalo-actor-chain.ts`. |
-| Waiver semantics in conformance | CWRU's notice right is waivable by the respondent; the conformance IR has no waiver construct. Noted in the case file. |
 | Any frontend, dashboard, or hosted service | Not built. CLI and library only. |
 | Filing, submitting, or sending anything to an institution | Out of scope permanently. |
 | Access to authenticated university systems, SIS, or portals | Out of scope permanently. |
@@ -184,12 +229,17 @@ Not implemented. These must not appear in the video, the post, or the Bot descri
 **Second-case test prompt (safe, different institution and shape):**
 
 > A student at Case Western Reserve was told on March 20th that their formal conduct hearing would be
-> held on March 23rd. Using the public Formal Hearing Process procedure, check whether the notice
-> period conforms. Use synthetic dates only.
+> held on March 23rd, and was never asked to waive the notice period. Using the public Formal Hearing
+> Process procedure, check whether the notice period conforms. Use synthetic dates only.
 
-**Expected public output format:** a Recourse Trace — governing source with hash, validated claims
-with their quotes, refused claims with reasons, obligations with computed due dates, conformance
-findings, forecast, and an explicit "what could not be determined" section.
+(If the student's account does not settle the waiver question, the correct answer is UNDETERMINED
+with the exception unresolved — that is a good outcome to demonstrate, not one to prompt around.)
+
+**Expected public output format:** the response shape in `skills/resolve-recourse-case.md` Step 7 —
+governing procedure; what it required; what actually happened; the finding
+(CONFORMANT / NONCONFORMANT / UNDETERMINED / EXCEPTION_APPLIES, with any exception state); both
+parties' deadlines; what could not be determined; the exact quoted evidence and its URL; and an
+explicit statement that no remedy or outcome is inferred. Then the Recourse Trace itself, whole.
 
 **Approval and safety boundaries for the Bot:**
 
@@ -198,4 +248,6 @@ findings, forecast, and an explicit "what could not be determined" section.
 - Never file, submit, or send anything to an institution.
 - Never present `UNDETERMINED`, `needsReview`, or a blocked authority result as a conclusion.
 - Never re-word a quote to make it validate.
+- Never upgrade advisory language to a binding requirement.
+- Never report a violation while an exception the source states is unresolved.
 - Never write the student's appeal narrative.

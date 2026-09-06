@@ -1,5 +1,10 @@
 # STATE_MACHINE.md — Case Lifecycle
 
+> **Design-pass document.** It is the normative description of the case lifecycle in
+> `schemas/case.schema.json`. The engine's own state vocabulary — obligation statuses, conformance
+> statuses and exception states — lives in `engine/src/types/case.ts` and
+> `engine/src/types/conformance.ts`; that is what `recourse analyze` enforces.
+
 States exactly match the `state` enum in `schemas/case.schema.json`. This document is the normative description; the schema is the enforced one.
 
 ```

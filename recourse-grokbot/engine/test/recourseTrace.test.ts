@@ -319,13 +319,14 @@ test("the Markdown rendering carries the evidence a reviewer needs, without engi
 
   // Identity and provenance
   assert.match(md, /# Recourse Trace — trace-case-1/);
-  assert.match(md, /Evaluated as of:\*\* 2026-03-25T00:00:00Z/);
+  assert.match(md, /Case evaluated as of:\*\* 2026-03-25T00:00:00Z/);
   assert.match(md, /Trace hash/);
   assert.match(md, /Raw document hash/);
   assert.match(md, /Canonical text hash/);
 
   // Authority, with its reason
-  assert.match(md, /## Governing authority/);
+  assert.match(md, /## Governing procedure/);
+  assert.match(md, /## Governing authority, in full/);
   assert.match(md, /APPLICABLE/);
 
   // The quoted evidence itself, not just rule ids
@@ -337,13 +338,60 @@ test("the Markdown rendering carries the evidence a reviewer needs, without engi
   assert.match(md, /wrong-source-rule/);
 
   // Findings, observed record, forecast, uncertainty, boundary
-  assert.match(md, /## Conformance findings/);
+  assert.match(md, /## Findings/);
   assert.match(md, /\*\*NONCONFORMANT\*\*/);
-  assert.match(md, /## What actually happened \(append-only case record\)/);
+  assert.match(md, /## The case record \(append-only\)/);
   assert.match(md, /## Forecast/);
-  assert.match(md, /## What could not be determined/);
-  assert.match(md, /## Scope of this record/);
+  assert.match(md, /## What Recourse could not determine/);
+  assert.match(md, /## What this record does not claim/);
   assert.match(md, /does not infer a remedy/);
+  assert.match(md, /No remedy or outcome is inferred here/);
+});
+
+test("the human summary comes before the technical evidence, and the evidence is still all there", async () => {
+  const trace = await buildTrace();
+  const md = renderRecourseTraceMarkdown(trace);
+
+  const at = (needle: string) => {
+    const i = md.indexOf(needle);
+    assert.notEqual(i, -1, `expected the rendering to contain "${needle}"`);
+    return i;
+  };
+
+  // A student or a panel member reads top-down. The finding, both parties'
+  // deadlines, the limits of the record and the "not inferred" statement must
+  // all be readable before the first content hash, or in practice they are
+  // not read at all.
+  const evidenceDivider = at("# Evidence and working");
+  for (const summarySection of [
+    "## Governing procedure",
+    "## Findings",
+    "## Deadlines, on both sides",
+    "## What Recourse could not determine",
+    "## What this record does not claim",
+  ]) {
+    assert.ok(at(summarySection) < evidenceDivider, `${summarySection} must appear above the evidence divider`);
+  }
+
+  // Moved, not dropped: every technical section is still present, below.
+  for (const detailSection of [
+    "## Sources as captured",
+    "## What was validated, and what was refused",
+    "## Findings — full computation and warrants",
+    "## Obligations — full detail",
+    "## Trace integrity",
+  ]) {
+    assert.ok(at(detailSection) > evidenceDivider, `${detailSection} must appear below the evidence divider`);
+  }
+
+  // The lead must not be buried by hashes.
+  assert.ok(at("sha256:") > at("## Findings"), "no content hash may appear before the first finding");
+});
+
+test("the trace-hash statement does not overclaim: content-addressed for a captured analysis, not stable across live recaptures", async () => {
+  const md = renderRecourseTraceMarkdown(await buildTrace());
+  assert.match(md, /content-addressed over this captured analysis/);
+  assert.match(md, /not a fingerprint of the live web pages/);
 });
 
 test("the Markdown of a blocked-authority case says so, rather than rendering an empty procedure", async () => {

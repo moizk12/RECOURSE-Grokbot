@@ -23,9 +23,9 @@ DISCOVER / AUTHORITY  →  COMPILE  →  VERIFY  →  TWIN  →  CONFORM  →  F
 | --- | --- | --- |
 | **DISCOVER / AUTHORITY** | Sources are fetched and hashed. Lineage between them (`GOVERNS`, `IMPLEMENTS`, `EXTENDS`, `SUPERSEDES`, `GUIDANCE_FOR`) is established only from quoted text. One governing source is resolved — or the engine refuses to pick. | `src/warrant/acquireSource.ts`, `src/authority/` |
 | **COMPILE** | Proposed rules are turned into candidate obligations, grounds, and constraints. | `src/warrant/rawProposal.ts`, `src/conformance/` |
-| **VERIFY** | Every claim is checked against a unique verbatim span in the captured source, and gated on the resolved authority. Inferred claims are never auto-promoted. | `src/warrant/`, `src/authority/authorityGate.ts` |
+| **VERIFY** | Every claim is checked against a unique verbatim span in the captured source, and gated on the resolved authority. Inferred claims are never auto-promoted, and a binding force is refused unless the cited span's own modal language supports one. | `src/warrant/`, `src/authority/authorityGate.ts`, `src/validation/deonticSupport.ts` |
 | **TWIN** | The case's append-only event trace is replayed against the validated procedure. Deadlines are computed, never estimated. | `src/case/`, `src/calendar/` |
-| **CONFORM** | Observed process is compared to expected process: CONFORMANT / NONCONFORMANT / UNDETERMINED. | `src/conformance/conformanceChecker.ts` |
+| **CONFORM** | Observed process is compared to expected process: CONFORMANT / NONCONFORMANT / UNDETERMINED / EXCEPTION_APPLIES, plus the state of any waiver the procedure itself attaches. | `src/conformance/conformanceChecker.ts` |
 | **FORECAST** | The same validated procedure is re-evaluated at explicit future instants, under scenarios the caller states. | `src/forecast/` |
 | **PROVE** | One analysis becomes a Recourse Trace: sources, hashes, warrants, findings, refusals, uncertainty. | `src/trace/` |
 | **WATCH** | Pinned sources are re-acquired; changed ones mark their dependent conclusions stale. | `src/drift/` |
@@ -61,6 +61,16 @@ inferred claim goes to human review even when its evidence verifies exactly. `CL
 grounds requires a quote affirmatively saying the list is closed; absence of an escape clause is not
 evidence.
 
+A verbatim span still does not prove the span *says* what was claimed. For the one dimension where
+getting that wrong is most costly — whether a rule is **binding** — a deterministic modality gate
+(`src/validation/deonticSupport.ts`) checks the cited sentences before a binding force is allowed.
+Advisory-only evidence is refused outright: Minnesota's guidance says a Dean's decision "should
+follow promptly… within 10 business days", and encoding that as a `MUST` is rejected on the evidence
+alone. Evidence with *no* modal verb — "Students have 10 academic days from notification to meet
+with the instructor" — is held for human review rather than guessed either way. This is a lexical
+check, not entailment, and the module says so in as many words; it is a necessary condition, not a
+claim to understand the provision.
+
 ### 3. Wrong process
 
 Everyone checks whether the student met their deadline. Far fewer check whether the university met
@@ -69,6 +79,14 @@ its own.
 **Conformance checking** compares the validated expected procedure against the observed event trace,
 for every actor. It fails closed: a required step that has not happened is `UNDETERMINED`, not a
 violation, until an observed event actually closes the window.
+
+It fails closed on **exceptions** too. Case Western's five-business-day hearing notice comes with a
+waiver in the same list item: *"A respondent may choose to waive this notice…"* A checker that models
+only the requirement reports a short-notice hearing as a violation — confidently, with a correct
+quote and correct arithmetic, and possibly wrongly, because a respondent who waived notice got
+exactly the process the policy provides. Recourse distinguishes four states: **requirement met**,
+**requirement violated**, **exception applies**, and **exception unresolved**. Absence of a recorded
+waiver is never read as evidence that no waiver was given.
 
 ---
 
@@ -87,23 +105,32 @@ The command prints JSON; summarised, it says:
 ```
 authority: APPLICABLE — uic-academic-grievance
 source:    oae.uic.edu/.../UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf
-           sha256:3cfacf12…  extractor pdf-parse v2.4.5
+           extractor pdf-parse v2.4.5
 
 obligation  uic-ao-decision              institution   due 2026-03-16   pending
 obligation  uic-student-request-hearing  student       due 2026-03-30   pending
+
+rejected    uic-fabricated-expedited-decision   quoted text not found verbatim in captured source
 
 forecast  2026-03-18  NEW_DEVIATION_DETECTED  uic-ao-decision: pending → missed
 forecast  2026-04-02  NEW_DEVIATION_DETECTED  uic-student-request-hearing: pending → missed
 ```
 
-The second line is the one that matters. The student's clock resolves to a real date **even though
-no decision was ever received**, because the source says the appeal window runs from the date a
-decision is received *"or is due, whichever date is earlier"* — so institutional silence does not
-freeze the student's next-stage deadline. Both dates are computed in business days, because the same
-document defines its own day unit.
+The input deliberately includes a third proposed rule — a made-up "expedited decision within three
+(3) business days" — so a run of this example shows a refusal as well as a result. That sentence is
+nowhere in the PDF, and no rule compiles from it.
+
+`uic-student-request-hearing` is the line that matters. The student's clock resolves to a real date
+**even though no decision was ever received**, because the source says the appeal window runs from
+the date a decision is received *"or is due, whichever date is earlier"* — so institutional silence
+does not freeze the student's next-stage deadline. Both dates are computed in business days, because
+the same document defines its own day unit.
 
 `recourse trace examples/uic-grievance.json` renders the whole thing as a record a student can hand
-to an advisor. See `engine/examples/traces/`.
+to an advisor: the governing document, what it required, what happened, the finding, both clocks,
+what could not be determined, and an explicit statement that no remedy or outcome is inferred —
+followed by a divider, below which every hash, span and refused claim is kept in full. See
+`engine/examples/traces/`.
 
 ---
 
@@ -117,15 +144,15 @@ are deterministic. All student data is synthetic.
 | --- | --- | --- |
 | University of Illinois Chicago | Academic Grievance | Two-sided clocks; the derived "received or due, whichever is earlier" anchor |
 | Auburn University | Academic Integrity appeal | Closed grounds only where the source says "may only be considered if"; five business days |
-| Case Western Reserve | Formal Hearing Process | Minimum notice lead time; deterministic NONCONFORMANT |
-| University of Minnesota | Student complaint guidance | **Negative test.** The document says it "do[es] not establish procedural rights or impose obligations" — Recourse must not compile it into either |
-| University at Buffalo | Undergraduate Academic Integrity | Actor-chained process; the student's clock is anchored on the instructor's step |
+| Case Western Reserve | Formal Hearing Process | Minimum notice lead time, and the waiver the same list item attaches to it: unresolved → UNDETERMINED, waived → EXCEPTION_APPLIES, ruled out → NONCONFORMANT |
+| University of Minnesota | Student complaint guidance | **Negative test.** The document says it "do[es] not establish procedural rights or impose obligations" — Recourse must not compile it into either, and its "should… within 10 business days" must not become a MUST |
+| University at Buffalo | Undergraduate Academic Integrity | Actor-chained process; a clock anchored on an upstream step. Also the modal-free student window UB never states as a requirement |
 
 ```bash
 npm run bench
 ```
 
-28 properties, reported as a matrix of expected-vs-actual with the source URL on every row. **No
+32 properties, reported as a matrix of expected-vs-actual with the source URL on every row. **No
 accuracy percentage** — these are invariants over hand-encoded cases, not a labelled dataset, and a
 pass ratio would dress a design decision up as a measurement.
 
@@ -133,8 +160,9 @@ pass ratio would dress a design decision up as a measurement.
 
 ## Scope, and what Recourse will not do
 
-- **It does not write the student's appeal.** Several institutions penalise AI-authored appeal
-  narrative; that is the one place a language model actively damages a student's case.
+- **It does not write the student's appeal.** Some institutions prohibit or discourage AI-authored
+  appeal content outright; that is the one place a language model can actively work against a
+  student's case.
 - **It does not infer a remedy, a legal entitlement, guilt, innocence, or a guaranteed outcome.**
   Every Recourse Trace states this on its face.
 - **It is not legal advice.**
@@ -154,10 +182,12 @@ pass ratio would dress a design decision up as a measurement.
 | `engine/GROK_HANDOFF.md` | The external-agent contract: commands, input shapes, and what the engine refuses |
 | `engine/bench/` | RecourseBench: cases, pinned sources, runner |
 | `engine/examples/` | Live-runnable inputs and the traces they produce |
-| `engine/test/` | 176 tests |
+| `engine/test/` | 211 tests |
 | `ARCHITECTURE.md`, `POLICY_IR.md`, `STATE_MACHINE.md` | System design, the rule IR, the case lifecycle |
 | `SAFETY.md` | Fail-closed rules: source hierarchy, no invented rights, human-approval boundaries |
-| `skills/`, `routines/` | Grok Bot Skill and Routine instructions |
+| `skills/resolve-recourse-case.md` | The current, engine-backed Grok Bot Skill. `open-case.md` / `check-case.md` in the same directory are marked historical and predate the engine |
+| `routines/` | Grok Routine specifications. Both are **specified, not yet run** — the drift *primitive* is implemented and CLI-runnable; no scheduled Routine execution has taken place |
+| `benchmarks/` | The original hand-written adversarial scenario corpus (prose, snippet-sourced). **Not** RecourseBench — see its README |
 | `SUBMISSION_PACK.md` | Demo storyboard, submission checklist, and a ledger of exactly which claims are tested |
 
 ## Verify it yourself
@@ -166,8 +196,8 @@ pass ratio would dress a design decision up as a measurement.
 cd recourse-grokbot/engine
 npm ci
 npm run typecheck
-npm test          # 176 tests
-npm run bench     # 28 benchmark properties against five real policies
+npm test          # 211 tests
+npm run bench     # 32 benchmark properties against five real policies
 npm run build
 ```
 

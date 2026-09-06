@@ -1,243 +1,205 @@
 {
-  "schemaVersion": 1,
-  "baseCommit": "55ca2257b0aec26fe467b3f065e31b62bfffaa61",
-  "branch": "claude/authority-conformance-integration",
+  "schemaVersion": 2,
+  "release": "v1.0.1-competition",
+  "baseCommit": "99bfe6cac544a3fe4402c346b585c7d96b5319e9",
+  "basedOn": "v1.0.0-competition",
+  "scope": "Final product-polish pass. No new subsystem, no architectural redesign. Two trust gaps closed, the human-facing report reordered, and every public claim re-audited against what is implemented.",
   "baseline": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "128 pass / 0 fail"
+    "tests": "176 pass / 0 fail",
+    "benchmark": "28 properties / 28 as expected"
   },
-  "phases": [
+  "workstreams": [
     {
-      "id": "P0",
-      "name": "Canonical full-pipeline integration",
+      "id": "W1",
+      "name": "Deontic support gate",
       "status": "verified",
+      "summary": "A directly-stated candidate may auto-promote to a binding force only where the modal language of its own cited sentences supports one.",
       "items": [
         {
-          "id": "P0.1",
-          "desc": "Generalized quote->warrant resolution shared by all three claim kinds",
+          "id": "W1.1",
+          "desc": "src/validation/deonticSupport.ts — deterministic, sentence-scoped lexical modality classifier (BINDING_POSITIVE / BINDING_NEGATIVE / BINDING_RESTRICTIVE / ADVISORY / MIXED / NONE)",
           "status": "verified"
         },
         {
-          "id": "P0.2",
-          "desc": "Raw (span-free) proposal path for source relationships",
+          "id": "W1.2",
+          "desc": "Gate applied at the single warrant choke point (checkWarrant), so all three proposal paths are covered and none can bypass it",
           "status": "verified"
         },
         {
-          "id": "P0.3",
-          "desc": "Raw (span-free) proposal path for conformance rules",
+          "id": "W1.3",
+          "desc": "Advisory-only evidence REJECTED for a binding claim; no-modal / mixed / wrong-polarity evidence HELD FOR REVIEW; advisory candidates not gated at all",
           "status": "verified"
         },
         {
-          "id": "P0.4",
-          "desc": "Authority gate applied to policy rules, not just conformance rules",
+          "id": "W1.4",
+          "desc": "Optional forceEvidence: a second quote resolved and verified to the identical standard, which cannot rescue an advisory primary span",
           "status": "verified"
         },
         {
-          "id": "P0.5",
-          "desc": "analyzeCase() single production boundary + `recourse analyze` CLI",
+          "id": "W1.5",
+          "desc": "23 adversarial tests (test/deonticSupport.test.ts) + two RecourseBench properties against real sources (UMN, Buffalo)",
           "status": "verified"
         },
         {
-          "id": "P0.6",
-          "desc": "v0.1 `recourse resolve` contract preserved unchanged",
-          "status": "verified"
-        },
-        {
-          "id": "P0.7",
-          "desc": "End-to-end tests proving the full chain",
+          "id": "W1.6",
+          "desc": "Limits stated rather than hidden: this is lexical modality, not entailment; a binding sentence about a different obligation still satisfies the gate",
           "status": "verified"
         }
       ]
     },
     {
-      "id": "P1a",
-      "name": "Deterministic procedural forecast",
+      "id": "W2",
+      "name": "Exception / waiver semantics",
       "status": "verified",
+      "summary": "CWRU's notice provision carries an explicit respondent waiver in the same list item. A deterministic NONCONFORMANT finding while that waiver is unresolved is no longer possible.",
       "items": [
         {
-          "id": "P1a.1",
-          "desc": "NO_NEW_EVENTS forecast at explicit future evaluationAt",
+          "id": "W2.1",
+          "desc": "ConformanceException on the conformance IR: description + establishedByEventType + negatedByEventType + its own verified warrant",
           "status": "verified"
         },
         {
-          "id": "P1a.2",
-          "desc": "EXPLICIT_SCENARIO forecast over caller-supplied hypothetical events",
+          "id": "W2.2",
+          "desc": "Four distinguishable states: CONFORMANT / NONCONFORMANT / EXCEPTION_APPLIES / UNDETERMINED, with exception state NOT_APPLICABLE / APPLIES / EXCLUDED / UNRESOLVED",
           "status": "verified"
         },
         {
-          "id": "P1a.3",
-          "desc": "Reuses existing trigger/calendar/obligation/deadline/conformance engines only",
+          "id": "W2.3",
+          "desc": "Absence of a waiver event is never read as evidence that no waiver occurred; negatedByEventType is required so there is always an affirmative route back to a violation finding",
           "status": "verified"
         },
         {
-          "id": "P1a.4",
-          "desc": "Purity: real event log never mutated",
+          "id": "W2.4",
+          "desc": "An unverifiable or inferred waiver is rejected, never dropped back to 'no exception'",
           "status": "verified"
         },
         {
-          "id": "P1a.5",
-          "desc": "Outcome classification incl. uncertainty",
+          "id": "W2.5",
+          "desc": "10 tests (test/exceptions.test.ts) + four RecourseBench properties on the live CWRU capture",
           "status": "verified"
         },
         {
-          "id": "P1a.6",
-          "desc": "Flagship UIC NO_NEW_EVENTS demonstration",
+          "id": "W2.6",
+          "desc": "The relevant-information lead time is a separate list item the waiver does not reach, and remains the clean flagship NONCONFORMANT",
           "status": "verified"
         }
       ]
     },
     {
-      "id": "P1b",
-      "name": "Recourse Trace proof artifact",
+      "id": "W3",
+      "name": "Human-facing Recourse Trace",
       "status": "verified",
       "items": [
         {
-          "id": "P1b.1",
-          "desc": "Deterministic JSON trace with case/authority/sources/validation/procedure/observed/conformance/forecast/uncertainty/boundary",
+          "id": "W3.1",
+          "desc": "Summary leads: governing procedure, what it required, what happened, the finding + exception state, both parties' deadlines, forecast implication, what could not be determined, explicit 'no remedy or outcome is inferred'",
           "status": "verified"
         },
         {
-          "id": "P1b.2",
-          "desc": "Human-readable Markdown rendering",
+          "id": "W3.2",
+          "desc": "Hashes, spans, warrants, refused claims and full computation moved below an 'Evidence and working' divider — moved, not dropped",
           "status": "verified"
         },
         {
-          "id": "P1b.3",
-          "desc": "Deterministic content hash",
+          "id": "W3.3",
+          "desc": "Ordering enforced by test: no content hash may appear before the first finding",
           "status": "verified"
         },
         {
-          "id": "P1b.4",
-          "desc": "Structural tests guarding evidence presence",
+          "id": "W3.4",
+          "desc": "TRACE_VERSION 2; new UNRESOLVED_EXCEPTION uncertainty kind; trace-hash statement corrected to content-addressed-for-a-captured-analysis",
+          "status": "verified"
+        },
+        {
+          "id": "W3.5",
+          "desc": "Grok Skill Step 7 rewritten to the same response shape",
           "status": "verified"
         }
       ]
     },
     {
-      "id": "P1c",
-      "name": "RecourseBench",
+      "id": "W4",
+      "name": "Claims and demo audit",
       "status": "verified",
       "items": [
         {
-          "id": "P1c.1",
-          "desc": "UIC academic grievance - two-sided clocks / derived trigger",
+          "id": "W4.1",
+          "desc": "Storyboard no longer calls 'ten business days' a fabricated UIC rule. UIC really does impose a 10-day institutional deadline; the demo's fabrication is now a 3-business-day expedited decision, verified absent and verified rejected on a live run",
           "status": "verified"
         },
         {
-          "id": "P1c.2",
-          "desc": "Auburn academic integrity - closed appeal grounds + 5 business day filing",
+          "id": "W4.2",
+          "desc": "'universities penalise AI-written appeals' narrowed to 'some institutions prohibit or discourage AI-authored appeal content' in README, SUBMISSION_PACK, benchmarks/case-06 and COMPETITIVE_REVIEW",
           "status": "verified"
         },
         {
-          "id": "P1c.3",
-          "desc": "CWRU formal hearing - minimum notice lead time NONCONFORMANT",
+          "id": "W4.3",
+          "desc": "Drift: the implemented engine primitive is separated explicitly from the Grok Routine, which has never been run",
           "status": "verified"
         },
         {
-          "id": "P1c.4",
-          "desc": "UMN complaint guidance - negative test, guidance never compiled to obligation",
+          "id": "W4.4",
+          "desc": "Trace hashing described accurately: deterministic for a fixed captured analysis, not identical across independent live recaptures",
           "status": "verified"
         },
         {
-          "id": "P1c.5",
-          "desc": "5th institution - actor-chained process (verify source first)",
-          "status": "verified",
-          "note": "UConn replaced with University at Buffalo: one UConn URL serves the current ASPIM policy and the superseded 2008 regime with no archival marker, and the required instructor-notification deadline exists only in the superseded text."
+          "id": "W4.5",
+          "desc": "The CWRU notice requirement is nowhere described as non-waivable; the checklist has an explicit item for it",
+          "status": "verified"
         },
         {
-          "id": "P1c.6",
-          "desc": "Benchmark runner + honest matrix report",
+          "id": "W4.6",
+          "desc": "All demo dates re-verified from fresh live runs",
           "status": "verified"
         }
       ]
     },
     {
-      "id": "P1d",
-      "name": "Case-aware source/policy drift",
+      "id": "W5",
+      "name": "Release hygiene",
       "status": "verified",
       "items": [
-        {
-          "id": "P1d.1",
-          "desc": "Drift primitive over pinned trace artifacts",
-          "status": "verified"
-        },
-        {
-          "id": "P1d.2",
-          "desc": "Dependent-claim staleness marking",
-          "status": "verified"
-        },
-        {
-          "id": "P1d.3",
-          "desc": "CLI callable without Grok",
-          "status": "verified"
-        },
-        {
-          "id": "P1d.4",
-          "desc": "GROK drift routine handoff doc",
-          "status": "verified"
-        }
-      ]
-    },
-    {
-      "id": "P2",
-      "name": "Competition / Grok package",
-      "status": "verified",
-      "items": [
-        {
-          "id": "P2.1",
-          "desc": "README trust-pipeline rewrite (only implemented stages claimed)",
-          "status": "verified"
-        },
-        {
-          "id": "P2.2",
-          "desc": "Grok skill handoff for Resolve a Recourse Case",
-          "status": "verified"
-        },
-        {
-          "id": "P2.3",
-          "desc": "SUBMISSION_PACK.md (storyboard, LinkedIn draft, checklist, claims ledger)",
-          "status": "verified"
-        },
-        {
-          "id": "P2.4",
-          "desc": "Release gate + tag v1.0.0-competition",
-          "status": "verified"
-        }
+        { "id": "W5.1", "desc": "package.json 0.1.0 -> 1.0.1; description rewritten from 'Phase 1' to the current competition engine; lock synced", "status": "verified" },
+        { "id": "W5.2", "desc": "engine/README.md de-'Phase 1'-ed and rewritten against the current pipeline, CLI surface and layout", "status": "verified" },
+        { "id": "W5.3", "desc": "skills/open-case.md and check-case.md marked HISTORICAL — DO NOT FOLLOW; DEMO_OPTIONS.md marked superseded by SUBMISSION_PACK §A; POLICY_IR / ARCHITECTURE / STATE_MACHINE marked design-pass with pointers to the enforced contract; routines marked specified-not-run", "status": "verified" },
+        { "id": "W5.4", "desc": "Stale counts corrected: 176 -> 211 tests, 28 -> 32 benchmark properties", "status": "verified" },
+        { "id": "W5.5", "desc": "Claims ledger reconciled: two PLANNED rows promoted to IMPLEMENTED + TESTED, three new PLANNED rows added for the limits the new gates do NOT cover", "status": "verified" },
+        { "id": "W5.6", "desc": "All case data synthetic and marked; no credentials, tokens or .env; no authenticated or DePaul data", "status": "verified" }
       ]
     }
   ],
   "verified": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "176 pass / 0 fail",
-    "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT",
-    "benchmark": "28 properties across 5 institutions, 28 as expected, 0 unexpected",
-    "driftRun": "recourse drift against the live CWRU page: UNCHANGED, exit 0",
-    "flagshipUIC": "authority APPLICABLE; institution due 2026-03-16, student due 2026-03-30 (derived from due date, no decision ever received); forecast NEW_DEVIATION_DETECTED at 2026-03-18 and 2026-04-02",
-    "flagshipCWRU": "2 conformance rules NONCONFORMANT against live case.edu page; earliest permissible hearing 2026-03-27"
-  },
-  "sourceResearch": {
-    "uic": "SUITABLE (PDF, days defined as business days)",
-    "auburn": "SUITABLE - retarget to current Academic Integrity Policy PDF; 5 BUSINESS days, old Honesty Code URL is 404",
-    "cwru": "SUITABLE (HTML)",
-    "umn": "SUITABLE negative case (disclaimer verbatim present)",
-    "uconn": "UNSUITABLE - one URL carries current ASPIM + superseded 2008 regime with no archival marker; replace with University at Buffalo"
+    "tests": "211 pass / 0 fail",
+    "benchmark": "32 properties across 5 institutions, 32 as expected, 0 unexpected",
+    "benchCaptureRefreshed": "all five sources re-acquired live; UIC / Auburn / CWRU byte-identical; UMN and Buffalo differ only in a rotating Cloudflare email-obfuscation token and a CDN cache-buster respectively, with no policy text change; all 32 properties pass against the fresh captures",
+    "flagshipUIC": "authority APPLICABLE; institution uic-ao-decision due 2026-03-16, student uic-student-request-hearing due 2026-03-30 (derived from the institution's own due date, no decision ever received); fabricated 3-business-day rule REJECTED; forecast NEW_DEVIATION_DETECTED at 2026-03-18 and 2026-04-02",
+    "flagshipCWRU": "default input: notice UNDETERMINED (exception UNRESOLVED), relevant-information NONCONFORMANT (earliest permissible hearing 2026-03-27). waiver-ruled-out input: notice NONCONFORMANT (exception EXCLUDED), relevant-information NONCONFORMANT",
+    "deonticGate": "UMN 'should ... within 10 business days' encoded as MUST is REJECTED on the evidence alone; UB 'Students have 10 academic days' encoded as MUST is HELD FOR REVIEW; UIC's binding student provision supplied as forceEvidence keeps the flagship derived deadline",
+    "driftLive": "recourse drift against the live CWRU page from the pinned trace: UNCHANGED, exit 0"
   },
   "releaseGate": {
     "freshClone": "pass",
     "npmCi": "pass",
     "typecheck": "pass",
     "build": "pass",
-    "tests": "176 pass / 0 fail",
-    "benchmark": "28/28 as expected",
+    "tests": "211 pass / 0 fail",
+    "benchmark": "32/32 as expected",
     "flagshipUIC": "pass (built dist)",
-    "flagshipCWRU": "pass (built dist)",
-    "finalTrace": "generated",
+    "flagshipCWRU": "pass (built dist, both inputs)",
+    "freshTraces": "regenerated for all three examples",
     "driftLive": "UNCHANGED",
     "secretsScan": "clean",
     "syntheticDataOnly": "confirmed",
     "docsVerified": "pass"
   },
+  "notChanged": [
+    "The public Bot, LinkedIn post, Typeform, and every external submission — untouched, as instructed.",
+    "The v0.1 `recourse resolve` contract.",
+    "The architecture: no new subsystem, no redesign."
+  ],
   "completedAt": "2026-09-06"
 }

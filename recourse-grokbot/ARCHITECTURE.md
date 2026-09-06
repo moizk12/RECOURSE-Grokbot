@@ -1,5 +1,9 @@
 # ARCHITECTURE.md — Recourse on Grok Bot
 
+> **Design-pass document**, describing how Recourse sits on Grok Bot primitives. For what is actually
+> implemented and tested, see `README.md` (the trust pipeline), `engine/README.md` (the engine) and
+> `engine/GROK_HANDOFF.md` (the external-agent contract).
+
 ## Grok Bot primitives this design relies on
 
 Per xAI's Grok Bot documentation (`docs.x.ai/grok-bot/*`, retrieved via search — see the provenance note in `README.md`), a Grok Bot is a **persistent, named agent** that runs on one cloud computer per Bot, with:

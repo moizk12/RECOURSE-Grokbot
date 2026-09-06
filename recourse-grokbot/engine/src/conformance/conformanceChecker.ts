@@ -27,11 +27,112 @@ function firstOccurrenceOf(log: CaseEventLog, eventType: string): CaseEvent | un
  * event in the trace makes that conclusion unavoidable -- never merely
  * because time has passed with nothing logged. See types/conformance.ts for
  * why each constraint kind is shaped to make this possible.
+ *
+ * Two stages, in this order: the constraint itself, then any exception the
+ * governing source attaches to it (see applyException below). A requirement
+ * that would be violated but whose stated waiver is unresolved on the record
+ * resolves to UNDETERMINED, not NONCONFORMANT -- the same fail-closed
+ * discipline, applied to the exception dimension.
  */
 export function checkConformance(
   rule: ValidatedConformanceRule,
   log: CaseEventLog,
   calendar: HolidayCalendar = NO_HOLIDAYS
+): ConformanceResult {
+  return applyException(rule, checkConstraint(rule, log, calendar), log);
+}
+
+/**
+ * Applies the rule's stated exception, if it has one, to an already-computed
+ * constraint result.
+ *
+ * Only a NONCONFORMANT result is affected: an exception excuses a
+ * requirement, it does not create one, so it can never turn a CONFORMANT or
+ * UNDETERMINED finding into something worse. The three branches are purely
+ * evidentiary and none of them infers anything from silence:
+ *
+ *   waiver event observed          -> EXCEPTION_APPLIES. The respondent got
+ *                                     the process the policy provides.
+ *   affirmative no-waiver observed -> the violation stands, now on a record
+ *                                     that actually rules the waiver out.
+ *   neither observed               -> UNDETERMINED. This is the branch that
+ *                                     matters: reporting a violation here
+ *                                     would mean inferring, from a case
+ *                                     record that simply never mentions
+ *                                     waivers, that no waiver was given.
+ */
+function applyException(
+  rule: ValidatedConformanceRule,
+  base: ConformanceResult,
+  log: CaseEventLog
+): ConformanceResult {
+  const ex = rule.exception;
+  if (!ex) return base;
+
+  if (base.status !== "NONCONFORMANT") {
+    return {
+      ...base,
+      exception: {
+        exceptionId: ex.id,
+        state: "NOT_APPLICABLE",
+        description: ex.description,
+        detail: `the requirement did not resolve to a violation, so the exception was never reached (finding: ${base.status})`,
+      },
+    };
+  }
+
+  const waived = firstOccurrenceOf(log, ex.establishedByEventType);
+  if (waived) {
+    return {
+      ruleId: rule.id,
+      status: "EXCEPTION_APPLIES",
+      reason:
+        `the requirement was not met as written -- ${base.reason} -- but the case record establishes that the exception stated in the ` +
+        `governing source applies: "${ex.establishedByEventType}" was recorded at ${waived.occurredAt}. This is not a violation.`,
+      exception: {
+        exceptionId: ex.id,
+        state: "APPLIES",
+        description: ex.description,
+        detail: `established by observed event "${ex.establishedByEventType}" at ${waived.occurredAt}`,
+      },
+    };
+  }
+
+  const excluded = firstOccurrenceOf(log, ex.negatedByEventType);
+  if (excluded) {
+    return {
+      ...base,
+      reason: `${base.reason} The exception stated in the governing source is ruled out: "${ex.negatedByEventType}" was recorded at ${excluded.occurredAt}.`,
+      exception: {
+        exceptionId: ex.id,
+        state: "EXCLUDED",
+        description: ex.description,
+        detail: `ruled out by observed event "${ex.negatedByEventType}" at ${excluded.occurredAt}`,
+      },
+    };
+  }
+
+  return {
+    ruleId: rule.id,
+    status: "UNDETERMINED",
+    reason:
+      `the requirement was not met as written -- ${base.reason} -- but the governing source attaches an exception to it (${ex.description}), ` +
+      `and the case record contains neither "${ex.establishedByEventType}" nor "${ex.negatedByEventType}". ` +
+      `Whether this is a violation therefore cannot be determined. Absence of a recorded waiver is NOT evidence that no waiver was given; ` +
+      `to resolve this, the record needs one of those two events.`,
+    exception: {
+      exceptionId: ex.id,
+      state: "UNRESOLVED",
+      description: ex.description,
+      detail: `neither "${ex.establishedByEventType}" nor "${ex.negatedByEventType}" appears in the case record`,
+    },
+  };
+}
+
+function checkConstraint(
+  rule: ValidatedConformanceRule,
+  log: CaseEventLog,
+  calendar: HolidayCalendar
 ): ConformanceResult {
   const c = rule.constraint;
 

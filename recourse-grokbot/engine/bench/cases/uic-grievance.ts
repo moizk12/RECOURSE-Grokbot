@@ -18,6 +18,18 @@ const Q_AO_DECISION =
 const Q_RECEIVED_OR_DUE =
   "Limitations imposed upon the Grievant for filing appeals of\ndecisions will be calculated from the date that any decision is received by the Grievant,\nor is due, whichever date is earlier.";
 
+/**
+ * The provision that makes the Grievant's next step BINDING. It is a
+ * different sentence from the one establishing the anchor semantics above,
+ * which is the ordinary shape of institutional drafting: one clause says when
+ * the clock starts, another says the step is required at all. Supplied as the
+ * student rule's `forceEvidence` so validation/deonticSupport.ts has real,
+ * verified, binding language to check the claimed MUST against, rather than
+ * the anchor clause's modal-free "will be calculated".
+ */
+const Q_STUDENT_REQUEST_REQUIRED =
+  "The Grievant’s request for a Formal Hearing must be submitted, in writing,";
+
 const Q_DAYS_ARE_BUSINESS_DAYS =
   "All references in these Procedures to a time period are to working or business\ndays. Official University holidays are not considered business days.";
 
@@ -47,7 +59,7 @@ export const uicGrievance: BenchCase = {
   sourceUrls: [URL],
   notes: [
     "The document defines its own day unit: \"All references in these Procedures to a time period are to working or business days.\" That definition is a separate provision from either deadline, and the current rule IR carries one warrant per rule, so the business_day unit on each deadline below is supported by a provision quoted in this case's evidence list but not by the individual rule's own warrant span. Recorded here rather than glossed over.",
-    "The student's next-stage window and the derived earliest-of anchor come from two provisions in the same document; the derived rule is warranted by the received-or-due clause, which is the provision that licenses the anchor semantics.",
+    "The student's next-stage window and the derived earliest-of anchor come from two provisions in the same document. The rule's own warrant is the received-or-due clause, which is what licenses the anchor semantics; the clause that makes the step binding (\"The Grievant's request for a Formal Hearing must be submitted, in writing,\") is supplied separately as forceEvidence and is verified to the identical standard. Without it the deontic-support gate would hold this rule for review, because \"will be calculated\" is not binding language — which is the correct, fail-closed behaviour and the reason the second quotation exists.",
   ],
 
   runs: (sources) => {
@@ -117,6 +129,7 @@ export const uicGrievance: BenchCase = {
           sourceId: SOURCE_ID,
           quotedText: Q_RECEIVED_OR_DUE,
           claimType: "directly_stated" as const,
+          forceEvidence: { quotedText: Q_STUDENT_REQUEST_REQUIRED, claimType: "directly_stated" as const },
         },
       ],
       events: EVENTS,
@@ -259,4 +272,4 @@ export const uicGrievance: BenchCase = {
   ],
 };
 
-export const UIC_EVIDENCE = { Q_AO_DECISION, Q_RECEIVED_OR_DUE, Q_DAYS_ARE_BUSINESS_DAYS };
+export const UIC_EVIDENCE = { Q_AO_DECISION, Q_RECEIVED_OR_DUE, Q_STUDENT_REQUEST_REQUIRED, Q_DAYS_ARE_BUSINESS_DAYS };

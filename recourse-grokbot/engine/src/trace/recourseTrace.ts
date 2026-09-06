@@ -22,7 +22,7 @@ import type { ForecastPoint } from "../forecast/forecast.ts";
  * There is no field here that requires a judgment call, and no field a model
  * fills in.
  */
-export const TRACE_VERSION = 1;
+export const TRACE_VERSION = 2;
 
 /**
  * Stated on every trace, machine-readable and rendered into the Markdown, so
@@ -31,7 +31,7 @@ export const TRACE_VERSION = 1;
 export const TRACE_BOUNDARY_STATEMENT =
   "Recourse compares a published institutional procedure against the recorded events of one case. " +
   "It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. " +
-  "A finding below states only whether an observed process matches a procedural rule that was validated against " +
+  "A finding in this record states only whether an observed process matches a procedural rule that was validated against " +
   "quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than " +
   "resolved in either party's favour. This is a procedural record, not legal advice.";
 
@@ -83,6 +83,21 @@ export interface TraceFinding {
   readonly status: string;
   /** The engine's own computation, verbatim -- including any computed boundary date. */
   readonly calculation: string;
+  /**
+   * Present only where the governing source attaches a waiver or exception to
+   * this requirement. Reported as its own dimension rather than folded into
+   * `status`, because "violated", "excused by a stated exception" and "the
+   * record does not say whether the exception applies" are three different
+   * things to tell a student, and collapsing them loses the one that matters
+   * most -- see types/conformance.ts.
+   */
+  readonly exception?: {
+    readonly exceptionId: string;
+    readonly state: string;
+    readonly description: string;
+    readonly detail: string;
+    readonly quotedText: string;
+  };
   readonly warrant: { readonly sourceId: string; readonly quotedText: string; readonly contentHash: string };
 }
 
@@ -92,7 +107,16 @@ export type UncertaintyKind =
   | "INFERRED_CLAIM_HELD_FOR_REVIEW"
   | "REJECTED_CLAIM"
   | "SOURCE_CONFLICT"
-  | "SOURCE_UNAVAILABLE";
+  | "SOURCE_UNAVAILABLE"
+  /**
+   * The requirement was not met as written, the governing source attaches an
+   * exception to it, and the case record establishes neither that the
+   * exception applies nor that it does not. Kept distinct from
+   * MISSING_EVENT_OR_FACT because the missing fact here is specific,
+   * nameable, and actionable: the record needs one of two stated events
+   * before this can resolve either way.
+   */
+  | "UNRESOLVED_EXCEPTION";
 
 export interface TraceUncertainty {
   readonly kind: UncertaintyKind;
@@ -225,7 +249,12 @@ function collectUncertainty(analysis: AnalyzeCaseResult): TraceUncertainty[] {
   }
 
   for (const finding of analysis.conformance) {
-    if (finding.status === "UNDETERMINED") {
+    if (finding.exception?.state === "UNRESOLVED") {
+      out.push({
+        kind: "UNRESOLVED_EXCEPTION",
+        detail: `conformance rule ${finding.ruleId}: ${finding.reason}`,
+      });
+    } else if (finding.status === "UNDETERMINED") {
       out.push({ kind: "MISSING_EVENT_OR_FACT", detail: `conformance rule ${finding.ruleId}: ${finding.reason}` });
     }
   }
@@ -357,6 +386,17 @@ export function buildRecourseTrace(analysis: AnalyzeCaseResult): RecourseTrace {
       observedEvents: observed,
       status: result.status,
       calculation: result.reason,
+      ...(result.exception && rule.exception
+        ? {
+            exception: {
+              exceptionId: result.exception.exceptionId,
+              state: result.exception.state,
+              description: result.exception.description,
+              detail: result.exception.detail,
+              quotedText: rule.exception.warrant.quotedText,
+            },
+          }
+        : {}),
       warrant: {
         sourceId: rule.warrant.sourceId,
         quotedText: rule.warrant.quotedText,
@@ -434,26 +474,272 @@ function quote(text: string, max = 300): string {
 }
 
 /**
- * Human-readable rendering of the same trace. Written for a student handing
- * this to an advisor or an ombuds office: it names the document, the rule,
- * the date, and the finding, without requiring any knowledge of this
- * codebase. It is a record, not an argument -- there is no advocacy language
- * here, and rejected/undetermined items are given the same prominence as
- * findings.
+ * Explicit, on the face of every trace, because it is the single most likely
+ * thing for a reader to over-read. A finding that a step did not conform says
+ * what the record shows against what the document requires. It does not say
+ * the student wins, that anything is owed, or what the institution will now
+ * do.
+ */
+const NOT_INFERRED_STATEMENT =
+  "**No remedy or outcome is inferred here.** A finding in this record says only whether the recorded process matches the " +
+  "published procedure. It does not establish that a decision was wrong, that any remedy is owed, what an institution " +
+  "will decide, or any legal entitlement. Recourse does not write appeals, does not file anything, and is not legal advice.";
+
+/** Plain-language gloss of each finding status, so the word is never the only explanation. */
+function plainStatus(status: string): string {
+  switch (status) {
+    case "CONFORMANT":
+      return "the requirement was met";
+    case "NONCONFORMANT":
+      return "the requirement was not met";
+    case "EXCEPTION_APPLIES":
+      return "the requirement was not met as written, but an exception the procedure itself states applies";
+    case "UNDETERMINED":
+      return "the record does not contain what is needed to decide";
+    default:
+      return status;
+  }
+}
+
+function plainExceptionState(state: string): string {
+  switch (state) {
+    case "APPLIES":
+      return "applies";
+    case "EXCLUDED":
+      return "ruled out by the record";
+    case "UNRESOLVED":
+      return "unresolved — the record settles it neither way";
+    case "NOT_APPLICABLE":
+      return "not reached";
+    default:
+      return state;
+  }
+}
+
+function plainObligationStatus(status: string): string {
+  switch (status) {
+    case "pending":
+      return "still running";
+    case "met":
+      return "done";
+    case "missed":
+      return "passed without the step being recorded";
+    case "unknown":
+      return "no date yet — the step that starts this clock has not happened";
+    default:
+      return status;
+  }
+}
+
+/** The document a claim came from, by source id, for the human-facing sections. */
+function sourceUrlOf(trace: RecourseTrace, sourceId: string): string {
+  return trace.sources.find((s) => s.sourceId === sourceId)?.finalUrl ?? "(source not captured in this trace)";
+}
+
+/**
+ * Human-readable rendering of the same trace.
+ *
+ * Written for the two people who actually read one: a student who has to
+ * decide what to do next, and whoever they hand it to -- an adviser, an
+ * ombuds office, a hearing panel. Neither of them knows or should need to
+ * know anything about this codebase.
+ *
+ * The ordering is the whole design. The finding, the two clocks, and what
+ * could not be determined come FIRST, in plain language, because a record
+ * that opens with content hashes and extractor versions is a record whose
+ * conclusion nobody reaches. Everything technical -- hashes, spans, warrants,
+ * refused claims, the full computation -- is kept, unabridged, below a clear
+ * divider. Nothing is dropped to make the top read better; it is moved.
+ *
+ * It remains a record and not an argument: there is no advocacy language,
+ * UNDETERMINED findings are given the same prominence as violations, and the
+ * limits of the record are stated in the summary rather than in a footnote.
  */
 export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
   const out: string[] = [];
 
+  // -------------------------------------------------------------------
+  // 1. What this is, and what governs.
+  // -------------------------------------------------------------------
   out.push(`# Recourse Trace — ${trace.case.caseId}`);
   out.push("");
-  out.push(`**Evaluated as of:** ${trace.case.evaluationAt}`);
-  if (trace.case.dataMarker) out.push(`**Case data:** ${trace.case.dataMarker}`);
-  out.push(`**Trace hash:** \`${trace.traceHash}\``);
+  out.push(
+    "_A procedural record: what the institution's published procedure requires, what this case's record shows happened, and whether the two match._"
+  );
   out.push("");
 
-  out.push("## Governing authority");
+  out.push("## Governing procedure");
   out.push("");
-  out.push(`**Decision type:** ${trace.authority.query.decisionType} at ${trace.authority.query.institution}`);
+  out.push(`- **Decision type:** ${trace.authority.query.decisionType} at ${trace.authority.query.institution}`);
+  if (trace.authority.governingSourceId) {
+    const src = trace.sources.find((s) => s.sourceId === trace.authority.governingSourceId);
+    out.push(`- **Governing document:** ${src ? src.finalUrl : trace.authority.governingSourceId}`);
+    if (src) out.push(`- **Retrieved:** ${src.retrievedAt}`);
+  }
+  out.push(`- **Applicability:** ${trace.authority.status} — ${trace.authority.reason}`);
+  out.push(`- **Case evaluated as of:** ${trace.case.evaluationAt}`);
+  if (trace.case.dataMarker) out.push(`- **Case data:** ${trace.case.dataMarker}`);
+  out.push("");
+
+  if (trace.authority.status !== "APPLICABLE") {
+    out.push(
+      "> **No governing document was established for this decision, so no rule was compiled and no finding was made.** " +
+        "That is the result, not a failure to produce one: acting on a procedure that may not govern this decision is how " +
+        "a student is given a confidently wrong deadline."
+    );
+    out.push("");
+  }
+
+  // -------------------------------------------------------------------
+  // 2. The findings, in plain language, with their evidence.
+  // -------------------------------------------------------------------
+  out.push("## Findings");
+  out.push("");
+  if (trace.conformance.length === 0) {
+    out.push(
+      trace.procedure.obligations.length > 0
+        ? "_No step-by-step procedural requirement (notice periods, ordering, required steps) was compiled for this case, so there is nothing to report as conforming or not. The deadlines below are what this analysis produced._"
+        : "_No procedural requirement was compiled for this case, so there is nothing to report as conforming or not._"
+    );
+    out.push("");
+  } else {
+    const tally = new Map<string, number>();
+    for (const f of trace.conformance) tally.set(f.status, (tally.get(f.status) ?? 0) + 1);
+    out.push(
+      [...tally.entries()].map(([status, n]) => `**${n} ${status}**`).join(" · ") +
+        " — each one below, with the source text it rests on."
+    );
+    out.push("");
+
+    for (const f of trace.conformance) {
+      out.push(`### ${f.status} — ${f.expected}`);
+      out.push("");
+      out.push(`- **Finding:** **${f.status}** (${plainStatus(f.status)})`);
+      out.push(`- **Responsible party:** ${f.actor}`);
+      out.push(`- **What the procedure required:** ${f.expected}`);
+      out.push(
+        `- **What actually happened:** ${
+          f.observedEvents.length > 0
+            ? f.observedEvents.map((e) => `${e.type} at ${e.occurredAt}`).join("; ")
+            : "nothing relevant to this requirement is recorded"
+        }`
+      );
+      if (f.exception) {
+        out.push(
+          `- **Exception stated by the procedure:** ${f.exception.description} — **${f.exception.state}** ` +
+            `(${plainExceptionState(f.exception.state)}); ${f.exception.detail}`
+        );
+      }
+      out.push(`- **How that was determined:** ${f.calculation}`);
+      out.push(`- **The procedure's own words** (${sourceUrlOf(trace, f.warrant.sourceId)}):`);
+      out.push(`  ${quote(f.warrant.quotedText)}`);
+      if (f.exception) {
+        out.push(`- **The exception's own words:**`);
+        out.push(`  ${quote(f.exception.quotedText)}`);
+      }
+      out.push("");
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 3. Both clocks. The half students are normally shown is only one of them.
+  // -------------------------------------------------------------------
+  out.push("## Deadlines, on both sides");
+  out.push("");
+  if (trace.procedure.obligations.length === 0) {
+    out.push("_No binding deadline was compiled for this case._");
+    out.push("");
+  } else {
+    out.push("| Who | What the procedure requires of them | Due | Where that stands |");
+    out.push("| --- | --- | --- | --- |");
+    for (const o of trace.procedure.obligations) {
+      const who = o.actor.trim().toLowerCase() === o.party ? o.party : `${o.party} (${o.actor})`;
+      out.push(
+        `| ${who} | ${o.deonticForce} ${o.action} | ${o.dueAt ?? "not yet determined"} | **${o.status}** — ${plainObligationStatus(o.status)} |`
+      );
+    }
+    out.push("");
+    for (const o of trace.procedure.obligations) {
+      out.push(`- **${o.obligationId}** — ${o.reason}`);
+      out.push(`  ${quote(o.sourceSpan, 200)}`);
+    }
+    out.push("");
+  }
+
+  const evaluatedForecast = trace.forecast.filter((p) => p.status === "evaluated");
+  if (evaluatedForecast.length > 0) {
+    out.push("**If nothing else is recorded, the same procedure implies:**");
+    out.push("");
+    out.push(
+      bullet(
+        evaluatedForecast.map(
+          (p) =>
+            `by **${p.evaluationAt}** — ${p.outcome}${
+              p.changes.length > 0
+                ? `: ${p.changes
+                    .map((c) =>
+                      c.kind === "obligation_status"
+                        ? `${c.obligationId} ${c.from} → ${c.to}`
+                        : c.kind === "conformance_status"
+                          ? `${c.ruleId} ${c.from} → ${c.to}`
+                          : c.kind === "obligation_due"
+                            ? `${c.obligationId} due ${c.from ?? "unknown"} → ${c.to ?? "unknown"}`
+                            : `eligibility ${c.from} → ${c.to}`
+                    )
+                    .join("; ")}`
+                : ""
+            }`
+        )
+      )
+    );
+    out.push(
+      "_This states what the published procedure implies at a stated instant under the requester's assumptions. It is not a prediction of what the institution will do. Full scenarios and assumptions are below._"
+    );
+    out.push("");
+  }
+
+  if (trace.procedure.eligibilityGrounds.length > 0) {
+    out.push(
+      `**Eligibility:** ${trace.procedure.eligibility.result} — ${trace.procedure.eligibility.reason}`
+    );
+    out.push("");
+  }
+
+  // -------------------------------------------------------------------
+  // 4. The limits of the record, stated up front rather than buried.
+  // -------------------------------------------------------------------
+  out.push("## What Recourse could not determine");
+  out.push("");
+  if (trace.uncertainty.length === 0) {
+    out.push("_Nothing was left undetermined in this analysis._");
+    out.push("");
+  } else {
+    out.push(bullet(trace.uncertainty.map((u) => `**${u.kind}** — ${u.detail}`)));
+  }
+
+  out.push("## What this record does not claim");
+  out.push("");
+  out.push(NOT_INFERRED_STATEMENT);
+  out.push("");
+  out.push(trace.boundary);
+  out.push("");
+
+  // -------------------------------------------------------------------
+  // 5. Everything above, with its evidence. Nothing is summarised away here.
+  // -------------------------------------------------------------------
+  out.push("---");
+  out.push("");
+  out.push("# Evidence and working");
+  out.push("");
+  out.push(
+    "_Everything the summary above rests on: which documents were fetched and what they hashed to, which claims were " +
+      "accepted, which were refused and why, and the case's full event record. A reader who wants to check the finding " +
+      "rather than read it starts here._"
+  );
+  out.push("");
+
+  out.push("## Governing authority, in full");
+  out.push("");
   out.push(`**Resolution:** ${trace.authority.status}`);
   out.push(`**Why:** ${trace.authority.reason}`);
   out.push("");
@@ -465,6 +751,14 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
           ? trace.authority.supportingSourceIds.map((s) => `\`${s}\``).join(", ")
           : "none"
       }`
+    );
+    out.push("");
+  }
+  if (trace.authority.candidateSourceIds.length > 0) {
+    out.push(
+      `**Competing candidates with no validated relationship between them:** ${trace.authority.candidateSourceIds
+        .map((s) => `\`${s}\``)
+        .join(", ")}`
     );
     out.push("");
   }
@@ -522,22 +816,6 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
   out.push("");
   out.push(`**Parties:** ${trace.procedure.actors.length > 0 ? trace.procedure.actors.join(", ") : "none identified"}`);
   out.push("");
-  if (trace.procedure.obligations.length === 0) {
-    out.push("_No binding obligations were validated._");
-    out.push("");
-  } else {
-    out.push("| Obligation | Party | Due | Status |");
-    out.push("| --- | --- | --- | --- |");
-    for (const o of trace.procedure.obligations) {
-      out.push(`| \`${o.obligationId}\` — ${o.deonticForce} ${o.action} | ${o.party} | ${o.dueAt ?? "—"} | **${o.status}** |`);
-    }
-    out.push("");
-    for (const o of trace.procedure.obligations) {
-      out.push(`- \`${o.obligationId}\`: ${o.reason}`);
-      out.push(`  ${quote(o.sourceSpan, 200)}`);
-    }
-    out.push("");
-  }
   if (trace.procedure.advisoryRules.length > 0) {
     out.push("**Advisory (non-binding) rules, kept separate and never used to gate state:**");
     out.push("");
@@ -556,8 +834,13 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
     out.push(`**Eligibility determination:** ${trace.procedure.eligibility.result} — ${trace.procedure.eligibility.reason}`);
     out.push("");
   }
+  if (trace.procedure.conflicts.length > 0) {
+    out.push("**Conflicting rules detected:**");
+    out.push("");
+    out.push(bullet(trace.procedure.conflicts.map((c) => `\`${c.ruleIdA}\` vs \`${c.ruleIdB}\` — ${c.reason}`)));
+  }
 
-  out.push("## What actually happened (append-only case record)");
+  out.push("## The case record (append-only)");
   out.push("");
   if (trace.observedCase.events.length === 0) {
     out.push("_No events recorded._");
@@ -571,7 +854,7 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
     out.push("");
   }
 
-  out.push("## Conformance findings");
+  out.push("## Findings — full computation and warrants");
   out.push("");
   if (trace.conformance.length === 0) {
     out.push("_No conformance rules were validated for this case._");
@@ -585,15 +868,43 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
       out.push(
         `- **Observed:** ${
           f.observedEvents.length > 0
-            ? f.observedEvents.map((e) => `${e.type} at ${e.occurredAt}`).join("; ")
+            ? f.observedEvents.map((e) => `${e.type} at ${e.occurredAt} (\`${e.eventId}\`)`).join("; ")
             : "no relevant event recorded"
         }`
       );
       out.push(`- **Determination:** ${f.calculation}`);
-      out.push(`- **Rule warrant** (source \`${f.warrant.sourceId}\`):`);
+      if (f.exception) {
+        out.push(
+          `- **Exception \`${f.exception.exceptionId}\`:** ${f.exception.state} — ${f.exception.detail}`
+        );
+        out.push(`  ${quote(f.exception.quotedText)}`);
+      }
+      out.push(`- **Rule warrant** (source \`${f.warrant.sourceId}\`, content hash \`${f.warrant.contentHash}\`):`);
       out.push(`  ${quote(f.warrant.quotedText)}`);
       out.push("");
     }
+  }
+
+  out.push("## Obligations — full detail");
+  out.push("");
+  if (trace.procedure.obligations.length === 0) {
+    out.push("_No binding obligations were validated._");
+    out.push("");
+  } else {
+    out.push("| Obligation | Party | Force | Trigger | Due | Status |");
+    out.push("| --- | --- | --- | --- | --- | --- |");
+    for (const o of trace.procedure.obligations) {
+      out.push(
+        `| \`${o.obligationId}\` — ${o.action} | ${o.party} | ${o.deonticForce} | ${o.trigger ?? "—"} | ${o.dueAt ?? "—"} | **${o.status}** |`
+      );
+    }
+    out.push("");
+    for (const o of trace.procedure.obligations) {
+      out.push(`- \`${o.obligationId}\` — ${o.reason}`);
+      out.push(`  source: ${o.sourceUrl}`);
+      out.push(`  ${quote(o.sourceSpan, 200)}`);
+    }
+    out.push("");
   }
 
   out.push("## Forecast");
@@ -602,6 +913,10 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
     out.push("_No forecast scenarios were requested._");
     out.push("");
   } else {
+    out.push(
+      "_A forecast states what the validated procedure implies at a stated future instant, under assumptions the requester supplied. It is not a prediction of what the institution will do._"
+    );
+    out.push("");
     for (const point of trace.forecast) {
       if (point.status === "rejected") {
         out.push(`### \`${point.scenarioId}\` — scenario refused`);
@@ -642,13 +957,17 @@ export function renderRecourseTraceMarkdown(trace: RecourseTrace): string {
     }
   }
 
-  out.push("## What could not be determined");
+  out.push("## Trace integrity");
   out.push("");
-  out.push(bullet(trace.uncertainty.map((u) => `**${u.kind}** — ${u.detail}`)));
-
-  out.push("## Scope of this record");
+  out.push(`- **Trace version:** ${trace.traceVersion}`);
+  out.push(`- **Trace hash:** \`${trace.traceHash}\``);
   out.push("");
-  out.push(trace.boundary);
+  out.push(
+    "The trace hash is content-addressed over this captured analysis: the same captured sources, the same case record " +
+      "and the same evaluation instant always produce this hash. It is not a fingerprint of the live web pages — a fresh " +
+      "run that re-fetches those URLs records new retrieval metadata, so its hash will differ even where every finding is " +
+      "identical. Use `recourse drift` to compare a pinned trace against the live sources."
+  );
   out.push("");
 
   return out.join("\n");

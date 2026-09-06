@@ -1,11 +1,16 @@
 # Skill: check-case
 
-> **Status: superseded for the engine-backed path.** This Skill was written before the
-> deterministic engine existed, and describes the Bot compiling the policy IR and computing
-> deadlines itself. The current contract is [`resolve-recourse-case.md`](resolve-recourse-case.md),
-> where the Bot only proposes quoted claims and `recourse analyze` does the capture, verification,
-> authority resolution, and arithmetic. This file is kept for the case-lifecycle reasoning it
-> documents (`SAFETY.md` boundaries, refusal states, opt-in narrative rules), which still holds.
+> ## HISTORICAL — DO NOT FOLLOW THIS SKILL
+>
+> **This is not the Skill a Bot should run.** It predates the deterministic engine and describes the
+> Bot compiling the policy IR and computing deadlines *itself* — which the current design
+> specifically forbids. The one current, engine-backed contract is
+> [`resolve-recourse-case.md`](resolve-recourse-case.md), where the Bot only proposes quoted claims
+> and `recourse analyze` does the capture, verification, authority resolution and arithmetic.
+>
+> It is kept in the repository for the case-lifecycle reasoning it documents (`SAFETY.md`
+> boundaries, refusal states, opt-in narrative rules), which still holds. Where anything here
+> conflicts with `resolve-recourse-case.md`, that file wins.
 
 **Trigger:** (a) a student follows up on an existing case ("here's the doctor's note," "I submitted it," "any update?"), or (b) invoked by the `case-watch` Routine on its scheduled sweep.
 

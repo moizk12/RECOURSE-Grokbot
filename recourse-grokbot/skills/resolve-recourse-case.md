@@ -111,7 +111,9 @@ Rules that are easy to get wrong, and how to get them right:
 
 | Situation | What to do |
 | --- | --- |
-| The text says "should", "may", "normally" | Use `SHOULD` / `MAY` / `NORMALLY`. **Never upgrade to `MUST`.** The engine keeps advisory rules out of the binding set, but only if you encode the modality honestly. |
+| The text says "should", "may", "normally" | Use `SHOULD` / `MAY` / `NORMALLY`. **Never upgrade to `MUST`.** The engine now refuses a binding force over advisory-only evidence outright — but the point is to encode what the source says, not to find out what you can get past it. |
+| The text states a period with no modal verb — "Students have 10 academic days to…", "the decision will be communicated…" | Do not assume it is binding. If a different sentence in the same document states that the step is required, quote that as `forceEvidence`. If none does, encode it honestly and expect the engine to hold it for human review. |
+| The requirement has a waiver or exception attached — "unless the student agrees otherwise", "a respondent may choose to waive this notice" | Propose it as the conformance rule's `exception`, quoting the sentence that creates it, and name the two events that would settle it: one establishing the waiver applied, one ruling it out. Never leave it out to get a cleaner finding. |
 | A list of grounds | `closure: "CLOSED"` **only** if you can quote the source affirmatively saying so ("the only grounds are…", "may only be considered if…"), and put that quote in `exhaustivenessEvidence`. The absence of "or other good cause" is an inference, not a quote — use `OPEN_EXAMPLES`. |
 | "N days" | Check whether the document defines its own day unit. Many define "days" as business/working days in a definitions section. Quote it, and set `unit` accordingly. |
 | A deadline measured from "receipt **or** when it was due, whichever is earlier" | This is a `derived` deadline with `combinator: "earliest"` and two anchors — one `fromEvent`, one `fromObligationDue`. Do not simplify it to the received date; that is the error that costs students their window. |
@@ -137,6 +139,13 @@ To produce the student-facing artifact:
 node recourse-grokbot/engine/src/cli/index.ts trace <input.json>
 ```
 
+The Markdown trace is already ordered for a human reader: the governing
+procedure, the findings, both parties' deadlines, what could not be determined,
+and an explicit statement that no remedy or outcome is inferred — then a
+divider, below which every hash, span and refused claim is kept in full. Give
+them the whole file. Do not paste only the top half; the evidence half is what
+makes it worth handing to anyone.
+
 Full input contract: `engine/GROK_HANDOFF.md`. Worked inputs: `engine/examples/`.
 
 ---
@@ -154,6 +163,9 @@ different answer** — that is tampering with the evidence, not fixing an error.
 | `needsReview` | Your claim was inferred, or the quote matched more than one place. Show the quote and say a human needs to confirm it. |
 | `"quoted text not found verbatim"` | Re-read the source. **Do not adjust the quote until it passes.** |
 | `UNDETERMINED` | The record doesn't yet contain what's needed to decide. Name the missing event. |
+| `exception.state: UNRESOLVED` | The requirement wasn't met as written, but the procedure itself allows a waiver and the record settles it neither way. Say exactly that, and name the two facts that would resolve it. **Do not report it as a violation** — a student who takes a wrong violation finding to a hearing panel loses the panel's trust for everything else in the record. |
+| `EXCEPTION_APPLIES` | Not met as written, and the procedure's own exception applies. Say both halves. It is not a violation, and it is not "everything was fine" either. |
+| A rule rejected on `deonticForce` | You wrote `MUST` over language that only says "should" or "may". Fix your encoding. Do not go looking for a different sentence to make it stick. |
 | `obligations[].status: "unknown"` | The triggering event hasn't happened, so no deadline exists yet. Do not invent a start date. |
 
 When it *does* resolve, lead with the deadlines on both sides and the computed dates, then the
@@ -162,16 +174,35 @@ consequential.
 
 ---
 
-## Step 7 — Hand over the record
+## Step 7 — Report, in this shape
 
-Give the student the Recourse Trace. It is the thing they can take to an advisor, an ombuds office,
-or an advocate: governing source with its hash, every validated claim with its quote, every refused
-claim with its reason, both parties' deadlines, the conformance findings, and an explicit list of
-what could not be determined.
+Answer in the order below, in plain language, before you show anything technical. This mirrors the
+Recourse Trace and exists for the same reason: a student reading top-down must reach the finding
+before they reach a content hash, or in practice they never reach it at all.
 
-Say plainly what it is not: it does not establish a remedy, a legal entitlement, guilt, innocence, or
-any guaranteed outcome, and it is not legal advice. Every trace states this on its face — do not
-undercut it by adding reassurance the analysis does not support.
+1. **Governing procedure** — which document governs, by name and link, and how you know. If authority
+   resolution blocked, this is where you stop and say so.
+2. **What the procedure required** — the requirement in the procedure's own words, quoted.
+3. **What actually happened** — the recorded events and dates, from what the student told you. Only
+   those.
+4. **The finding** — `CONFORMANT` / `NONCONFORMANT` / `UNDETERMINED` / `EXCEPTION_APPLIES`, in one
+   sentence a non-specialist understands, together with any exception state
+   (`APPLIES` / `EXCLUDED` / `UNRESOLVED`) where the source attaches one.
+5. **Both parties' deadlines** — the student's *and* the institution's, with computed dates and where
+   each stands. Never report only the student's.
+6. **What Recourse could not determine** — every `UNDETERMINED`, every unresolved exception, every
+   claim held for review, and the specific fact that would resolve each.
+7. **The evidence** — the exact quoted source text behind each finding, and the URL it came from.
+8. **What is not inferred** — say it explicitly: no remedy, no legal entitlement, no guilt or
+   innocence, no prediction of what the institution will decide, and not legal advice.
+
+Then hand over the Recourse Trace itself, whole. It is the thing they can take to an adviser, an
+ombuds office, or an advocate: governing source with its hash, every validated claim with its quote,
+every refused claim with its reason, both parties' deadlines, the conformance findings, and an
+explicit list of what could not be determined.
+
+Do not undercut the boundary statement by adding reassurance the analysis does not support, and do
+not soften an `UNDETERMINED` into a "probably".
 
 ---
 
@@ -182,5 +213,8 @@ undercut it by adding reassurance the analysis does not support.
 - Never present `UNDETERMINED`, `needsReview`, or a blocked authority result as a conclusion.
 - Never invent a case event, a date, or a hypothetical future event.
 - Never upgrade `should` to `must`.
+- Never treat a bare period with no modal verb as a binding requirement.
+- Never leave out an exception the source states in order to produce a determined finding.
+- Never infer that no waiver occurred from the fact that none was recorded.
 - Never write the student's appeal.
 - Never file or send anything to an institution.

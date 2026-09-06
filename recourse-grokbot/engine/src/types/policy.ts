@@ -123,6 +123,17 @@ export interface CandidatePolicyRuleBase {
    * a missing warrant as an automatic reject, it never substitutes a default.
    */
   warrant?: import("./warrant.ts").EvidenceWarrant;
+  /**
+   * Optional SECOND checkable pointer, used only to establish that this rule's
+   * `deonticForce` is binding, for the common drafting pattern where the
+   * sentence stating the period or the anchor is not the sentence stating the
+   * requirement. It is verified exactly like `warrant` -- same source, same
+   * hash pin, same verbatim span check -- and is then read by
+   * validation/deonticSupport.ts. It can only ever ADD evidence: a candidate
+   * whose own warrant span already carries binding language does not need it,
+   * and supplying one never rescues a rule whose warrant span is advisory.
+   */
+  forceWarrant?: import("./warrant.ts").EvidenceWarrant;
   actor: string | undefined;
   action: string | undefined;
   trigger: TriggerSpec | null | undefined;

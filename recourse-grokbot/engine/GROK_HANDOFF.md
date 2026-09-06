@@ -89,7 +89,13 @@ human review rather than guessed at.
 
 ```ts
 // Policy rule — src/warrant/rawProposal.ts
-{ rule: Omit<CandidatePolicyRule, "warrant">, sourceId, quotedText, claimType }
+{
+  rule: Omit<CandidatePolicyRule, "warrant" | "forceWarrant">,
+  sourceId, quotedText, claimType,
+  // Optional. A SECOND quote from the same source, offered only to establish
+  // that the rule's deonticForce is binding — see "Deontic support" below.
+  forceEvidence?: { quotedText, claimType }
+}
 
 // Source lineage — src/authority/rawRelationship.ts
 // type: GOVERNS | IMPLEMENTS | EXTENDS | SUPERSEDES | GUIDANCE_FOR
@@ -98,7 +104,18 @@ human review rather than guessed at.
 
 // Procedural constraint — src/conformance/rawConformance.ts
 // constraint: required_event | required_before | minimum_lead_time
-{ rule: { id, sourceId, actor, constraint }, quotedText, claimType }
+{
+  rule: { id, sourceId, actor, constraint },
+  quotedText, claimType,
+  // Optional. A waiver or exception the SOURCE ITSELF attaches to this
+  // requirement — see "Exceptions and waivers" below.
+  exception?: {
+    id, description,
+    establishedByEventType,   // observing this establishes the exception applies
+    negatedByEventType,       // observing this affirmatively rules it out
+    quotedText, claimType
+  }
+}
 ```
 
 `claimType` is `"directly_stated"` or `"inferred"`. **Inferred claims are never
@@ -106,6 +123,47 @@ auto-promoted**, in any of the three layers, even when the quoted span verifies
 exactly. Mark a claim inferred when it is your reading of the text rather than
 what the text says; doing so routes it to review instead of silently making it
 executable.
+
+### Deontic support: what makes a rule BINDING
+
+A verified span proves the quote exists. It does not prove the quote says what
+you claim. For a rule you encode with a binding force (`MUST`, `MUST_NOT`,
+`SHALL`, `SHALL_NOT`), the engine additionally checks the modal language of
+the cited sentences (`src/validation/deonticSupport.ts`):
+
+| Cited evidence | Outcome |
+| --- | --- |
+| A sentence using "must" / "shall" / "is required to", or a restriction ("may only … if") | Binding force accepted |
+| Only advisory language — "should", "may", "normally", "encouraged", "recommended" | **Rejected.** Encode the advisory force instead. |
+| No modal verb at all ("will be communicated", "students have 10 days"), mixed modality within every sentence, or binding language of the wrong polarity | **Held for review.** Not guessed either way. |
+
+If the sentence stating the period or the anchor is not the sentence stating
+that the step is required — which is common — quote the requirement sentence as
+`forceEvidence`. It is resolved and verified exactly like the primary quote, in
+the same source, and it **cannot** rescue a rule whose own span is advisory.
+
+This check is lexical, not an interpretation of the provision: a necessary
+condition for a binding rule, not a sufficient one.
+
+### Exceptions and waivers
+
+Where a source attaches a waiver or exception to a requirement — CWRU's hearing
+notice provision is immediately followed by "A respondent may choose to waive
+this notice…" — propose it as the conformance rule's `exception`, with the
+quote that creates it and the two event types that would settle it either way.
+The checker then reports four distinguishable states:
+
+| The record shows | Finding |
+| --- | --- |
+| The requirement was met | `CONFORMANT` |
+| Not met, and `negatedByEventType` observed | `NONCONFORMANT` (exception `EXCLUDED`) |
+| Not met, and `establishedByEventType` observed | `EXCEPTION_APPLIES` (exception `APPLIES`) |
+| Not met, and neither observed | `UNDETERMINED` (exception `UNRESOLVED`) |
+
+The last row is the point. **Absence of a recorded waiver is not evidence that
+no waiver was given**, so the engine will not report a violation there. If the
+student's account settles it either way, record the corresponding event; never
+omit the exception to get a cleaner-looking answer.
 
 ### Forecast scenarios
 
@@ -139,7 +197,12 @@ code path that constructs one. The real event log is never mutated.
   ruleWarrants: { ruleId, warrant }[],
   advisoryRules[], eligibilityGrounds[], conflicts[],
   caseState: { evaluationAt, obligations: { obligationId, party, dueAt, status, reason }[], eligibility },
-  conformance: { ruleId, status: "CONFORMANT" | "NONCONFORMANT" | "UNDETERMINED", reason }[],
+  conformance: { ruleId,
+                 status: "CONFORMANT" | "NONCONFORMANT" | "UNDETERMINED" | "EXCEPTION_APPLIES",
+                 reason,
+                 exception?: { exceptionId,
+                               state: "NOT_APPLICABLE" | "APPLIES" | "EXCLUDED" | "UNRESOLVED",
+                               description, detail } }[],
   deviations[], forecast[], observedEvents[]
 }
 ```
@@ -157,6 +220,10 @@ do not retry with different wording to get a different answer.
 | A claim in `needsReview` | Either your `claimType` was `inferred`, or your quote matched more than one place in the source. Ask a human, or quote a longer unique span. |
 | `"quoted text not found verbatim"` | The text is not in the captured document. Re-read the source; do not adjust the quote until it passes. |
 | `conformance[].status: UNDETERMINED` | The trace does not yet contain the events needed to decide. This is the right answer, not a gap to fill in. |
+| `conformance[].exception.state: UNRESOLVED` | The requirement was not met as written, but the source itself allows a waiver and the record settles it neither way. Name the two events that would resolve it. Do not report this as a violation. |
+| `conformance[].status: EXCEPTION_APPLIES` | Not met as written, and the source's own exception applies. Report it as that — not as CONFORMANT, and not as a violation. |
+| A rule rejected on `deonticForce` | You encoded a binding force over evidence whose only modality is advisory. Encode the force the source actually uses; do not hunt for a different quote to make MUST stick. |
+| A rule in `needsReview` citing "could not be deterministically confirmed" | The cited sentence has no modal verb, or ambiguous modality. Quote the provision that states the requirement in binding terms as `forceEvidence`, or leave it for a human. |
 | `obligations[].status: "unknown"` | The triggering event has not occurred, so no deadline exists yet. Do not invent a start date. |
 
 ## What Grok must never do
@@ -164,12 +231,22 @@ do not retry with different wording to get a different answer.
 - Never supply a `contentHash` or a `span`. There is no field for either.
 - Never re-word a quote to make it validate.
 - Never present a `needsReview` or `UNDETERMINED` result as a conclusion.
+- Never upgrade "should"/"may"/"normally" to a binding force.
+- Never omit an exception the source states in order to get a determined finding.
+- Never infer that no waiver occurred from the fact that none was recorded.
 - Never invent a hypothetical event to make a forecast more useful.
 - Never file, submit, or send anything to an institution.
 - Never touch authenticated systems or non-public student data.
 
 ## Worked examples
 
-`examples/uic-grievance.json` and `examples/cwru-formal-hearing.json` are
-complete, live-runnable inputs against real public policy URLs with synthetic
-student data. `examples/traces/` holds the artifacts they produce.
+`examples/uic-grievance.json`, `examples/cwru-formal-hearing.json` and
+`examples/cwru-formal-hearing-waiver-ruled-out.json` are complete, live-runnable
+inputs against real public policy URLs with synthetic student data.
+`examples/traces/` holds the artifacts they produce.
+
+The UIC input deliberately carries one fabricated proposal (an "expedited
+decision within three (3) business days" that appears nowhere in the PDF) so a
+run shows a refusal alongside a result. The two CWRU inputs differ only in
+whether the record rules the notice waiver out, and show the same requirement
+resolving to `UNDETERMINED` and to `NONCONFORMANT`.

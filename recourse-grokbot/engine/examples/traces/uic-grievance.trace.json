@@ -1,5 +1,5 @@
 {
-  "traceVersion": 1,
+  "traceVersion": 2,
   "case": {
     "caseId": "uic-grievance-demo",
     "evaluationAt": "2026-03-10T00:00:00Z",
@@ -40,7 +40,7 @@
       "sourceId": "uic-academic-grievance",
       "requestedUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
       "finalUrl": "https://oae.uic.edu/wp-content/uploads/sites/32/2019/10/UIC_Student_Academic_Grievance_Procedures-and-Forms_FINAL_Sept-2019.pdf",
-      "retrievedAt": "2026-09-06T10:10:29.906Z",
+      "retrievedAt": "2026-09-06T14:25:09.013Z",
       "contentType": "application/pdf",
       "rawBytesHash": "sha256:2ff5a5abbc2553879d3d8201de20a10ae646a114e51eaa09a9f2c132c075477c",
       "contentHash": "sha256:3cfacf12cd43bf0d68a4f18b39ab1b82c1492a26c93935b6fc90c7fb99fe2577",
@@ -77,7 +77,14 @@
         "contentHash": "sha256:3cfacf12cd43bf0d68a4f18b39ab1b82c1492a26c93935b6fc90c7fb99fe2577"
       }
     ],
-    "rejectedClaims": [],
+    "rejectedClaims": [
+      {
+        "claimId": "uic-fabricated-expedited-decision",
+        "kind": "policy_rule",
+        "field": "rawProposal.quotedText",
+        "reason": "quoted text not found verbatim in captured source 'uic-academic-grievance' -- cannot derive a hash or span for text that does not exist in the source (stale proposal, or source has changed since the model read it)"
+      }
+    ],
     "needsReviewClaims": []
   },
   "procedure": {
@@ -216,6 +223,13 @@
           "type": "INSTITUTION_DEADLINE_EXCEEDED",
           "detail": "deadline 2026-03-16 has passed with no recorded completion",
           "relatedObligationId": "uic-ao-decision"
+        },
+        {
+          "type": "MISSING_SOURCE_EVIDENCE",
+          "detail": "rule \"uic-fabricated-expedited-decision\" rejected at validation: rawProposal.quotedText — quoted text not found verbatim in captured source 'uic-academic-grievance' -- cannot derive a hash or span for text that does not exist in the source (stale proposal, or source has changed since the model read it)",
+          "relatedRuleIds": [
+            "uic-fabricated-expedited-decision"
+          ]
         }
       ]
     },
@@ -277,11 +291,23 @@
           "type": "INSTITUTION_DEADLINE_EXCEEDED",
           "detail": "deadline 2026-03-16 has passed with no recorded completion",
           "relatedObligationId": "uic-ao-decision"
+        },
+        {
+          "type": "MISSING_SOURCE_EVIDENCE",
+          "detail": "rule \"uic-fabricated-expedited-decision\" rejected at validation: rawProposal.quotedText — quoted text not found verbatim in captured source 'uic-academic-grievance' -- cannot derive a hash or span for text that does not exist in the source (stale proposal, or source has changed since the model read it)",
+          "relatedRuleIds": [
+            "uic-fabricated-expedited-decision"
+          ]
         }
       ]
     }
   ],
-  "uncertainty": [],
-  "boundary": "Recourse compares a published institutional procedure against the recorded events of one case. It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. A finding below states only whether an observed process matches a procedural rule that was validated against quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than resolved in either party's favour. This is a procedural record, not legal advice.",
-  "traceHash": "sha256:b625456575b8d4a082da54c14604ac7f08df1f4270d915c83dc6172607580b54"
+  "uncertainty": [
+    {
+      "kind": "REJECTED_CLAIM",
+      "detail": "uic-fabricated-expedited-decision [rawProposal.quotedText]: quoted text not found verbatim in captured source 'uic-academic-grievance' -- cannot derive a hash or span for text that does not exist in the source (stale proposal, or source has changed since the model read it)"
+    }
+  ],
+  "boundary": "Recourse compares a published institutional procedure against the recorded events of one case. It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. A finding in this record states only whether an observed process matches a procedural rule that was validated against quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than resolved in either party's favour. This is a procedural record, not legal advice.",
+  "traceHash": "sha256:cda28cd1466f86e6ba302ab33464c37fbf91547f072d919ad1339011c40ccf14"
 }

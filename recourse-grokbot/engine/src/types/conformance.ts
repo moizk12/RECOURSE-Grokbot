@@ -66,6 +66,51 @@ export interface MinimumLeadTimeConstraint {
 export type ConformanceConstraint = RequiredEventConstraint | RequiredBeforeConstraint | MinimumLeadTimeConstraint;
 
 /**
+ * A waiver or exception the governing source ATTACHES TO THIS REQUIREMENT,
+ * quoted from the source like everything else here.
+ *
+ * This exists because of a real provision in a real procedure. CWRU's Formal
+ * Hearing Process says, in one list item: "The hearing date, time and
+ * location will be communicated to the respondents at least five business
+ * days prior to the hearing.&nbsp;A respondent may choose to waive this
+ * notice in the interests of expediting resolution of the case." A checker
+ * that knows only the first sentence will report a short-notice hearing as a
+ * deterministic violation. That finding is not merely incomplete -- it is
+ * capable of being flatly wrong, because a respondent who waived notice got
+ * exactly the process the policy provides. A student who takes that finding
+ * to a hearing panel is embarrassed by it, and every other finding in the
+ * same record loses its credibility with them.
+ *
+ * The semantics are deliberately evidentiary, not interpretive. The engine
+ * never decides whether a waiver "probably" happened:
+ *
+ *   `establishedByEventType` observed  -> the exception APPLIES.
+ *   `negatedByEventType` observed      -> the exception is EXCLUDED, and the
+ *                                         underlying violation stands.
+ *   neither observed                   -> UNRESOLVED. The requirement may or
+ *                                         may not have been violated, and the
+ *                                         record does not say.
+ *
+ * The last branch is the entire point. ABSENCE OF A WAIVER EVENT IS NOT
+ * EVIDENCE THAT NO WAIVER OCCURRED -- most case records simply will not
+ * mention it. `negatedByEventType` is required rather than optional so that
+ * every exception has a stated way to be ruled out affirmatively; without one
+ * there would be no path back to a clean violation finding except by
+ * assuming absence, which is the assumption this whole layer refuses to make.
+ */
+export interface ConformanceException {
+  readonly id: string;
+  /** Plain-language description of the exception, for the human-facing report. */
+  readonly description: string;
+  /** Observing this event type establishes that the exception applies. */
+  readonly establishedByEventType: string;
+  /** Observing this event type affirmatively establishes that the exception does NOT apply. */
+  readonly negatedByEventType: string;
+  /** Verified pointer to the source text creating the exception. Required on a validated rule, exactly like the rule's own warrant. */
+  readonly warrant?: EvidenceWarrant;
+}
+
+/**
  * Untrusted input -- whatever the model proposed after reading a governing
  * source. `sourceId` identifies which PolicySource this rule claims to be
  * compiled from; conformance/conformancePipeline.ts checks that id against
@@ -78,6 +123,8 @@ export interface CandidateConformanceRuleBase {
   readonly actor: string | undefined;
   readonly constraint: ConformanceConstraint | undefined;
   readonly warrant?: EvidenceWarrant;
+  /** Optional waiver/exception the source attaches to this requirement. Verified exactly like the rule's own warrant. */
+  readonly exception?: ConformanceException;
 }
 export type CandidateConformanceRule = CandidateConformanceRuleBase;
 
@@ -92,6 +139,8 @@ export interface ValidatedConformanceRule {
   readonly actor: string;
   readonly constraint: Readonly<ConformanceConstraint>;
   readonly warrant: Readonly<EvidenceWarrant>;
+  /** Present only when the source states an exception, and then always with its own verified warrant. */
+  readonly exception?: Readonly<ConformanceException & { readonly warrant: Readonly<EvidenceWarrant> }>;
 }
 
 export interface ConformanceRuleError {
@@ -107,10 +156,34 @@ export interface ConformanceRuleError {
  * conformance/conformanceChecker.ts for exactly which observed events are
  * required before each constraint kind may resolve to NONCONFORMANT.
  */
-export type ConformanceStatus = "CONFORMANT" | "NONCONFORMANT" | "UNDETERMINED";
+export type ConformanceStatus = "CONFORMANT" | "NONCONFORMANT" | "UNDETERMINED" | "EXCEPTION_APPLIES";
+
+/**
+ * The exception dimension of a finding, reported alongside the status so the
+ * four states a reader actually needs stay distinguishable:
+ *
+ *   requirement satisfied       -> CONFORMANT
+ *   requirement violated        -> NONCONFORMANT      (exception NOT_APPLICABLE or EXCLUDED)
+ *   exception/waiver applies    -> EXCEPTION_APPLIES  (exception APPLIES)
+ *   exception state unresolved  -> UNDETERMINED       (exception UNRESOLVED)
+ *
+ * NOT_APPLICABLE means the rule carries no exception, or the requirement was
+ * met so no exception was ever reached. It is never a claim that no exception
+ * exists in the world.
+ */
+export type ExceptionState = "NOT_APPLICABLE" | "APPLIES" | "EXCLUDED" | "UNRESOLVED";
+
+export interface ConformanceExceptionOutcome {
+  readonly exceptionId: string;
+  readonly state: ExceptionState;
+  readonly description: string;
+  readonly detail: string;
+}
 
 export interface ConformanceResult {
   readonly ruleId: string;
   readonly status: ConformanceStatus;
   readonly reason: string;
+  /** Present only when the rule carries an exception. Absent means the source stated none, not that none applies. */
+  readonly exception?: ConformanceExceptionOutcome;
 }

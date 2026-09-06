@@ -1,8 +1,14 @@
 # Routine: Policy Drift Watch
 
-**Status: specified, not yet run.** This document describes the recurring workflow. As of this
-release no scheduled run has been performed, and nothing in this repository should be read as
-evidence that one has.
+**Status: the engine primitive is implemented; this Routine has never been run.** Two different
+things, and the distinction matters for what may be claimed:
+
+- `recourse drift` — the deterministic engine primitive. Implemented in `engine/src/drift/`, tested
+  in `engine/test/sourceDrift.test.ts`, runnable from the CLI with no model in the loop, and run
+  live against the CWRU page during release verification (result: UNCHANGED).
+- **This Routine** — the scheduled Grok wrapper around that command, described below. **No scheduled
+  run has been performed.** Nothing in this repository is evidence that one has, and nothing in the
+  demo, the post, or the Bot description may imply otherwise.
 
 ## What this routine is for
 
@@ -28,6 +34,15 @@ versions actually used, and reports one status per source:
 | Status | Meaning |
 | --- | --- |
 | `UNCHANGED` | Same bytes, same canonical text, same extractor. Nothing to report. |
+
+**A `CHANGED` result is not evidence that a rule changed.** Verified during the v1.0.1 release gate
+by re-capturing all five RecourseBench sources: two of them (University of Minnesota, University at
+Buffalo) produce a different `contentHash` on every fetch, because of a rotating Cloudflare
+email-obfuscation token and a CDN cache-buster in an `og:image` URL respectively. Neither page's
+policy text moved by a character, and all 32 benchmark properties passed unchanged against the fresh
+captures. This is exactly why drift reports a hash difference and demands revalidation rather than
+asserting that a requirement changed — inferring semantic change from a hash would be the confident
+inference this system refuses to make.
 | `SOURCE_CHANGED` | The document served is not the document that was read. |
 | `EXTRACTOR_DRIFT` | Byte-identical document, different canonical text — our reading changed, not the document. |
 | `SOURCE_UNAVAILABLE` | The URL could not be re-acquired at all. |

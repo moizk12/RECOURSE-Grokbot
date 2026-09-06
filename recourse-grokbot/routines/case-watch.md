@@ -1,5 +1,10 @@
 # Routine: case-watch
 
+> **Status: specified, not yet run, and written against the pre-engine Skill path.** It invokes
+> `skills/check-case.md`, which is itself marked historical — the current engine-backed contract is
+> `skills/resolve-recourse-case.md`. Kept for the cadence and escalation reasoning it documents. No
+> scheduled run has been performed.
+
 **Type:** scheduled (Grok Bot Routine), not event-triggered — deadlines and policy drift both need to be caught even when nothing external pings the Bot.
 
 **Cadence:** daily, by default. Rationale: the shortest real student-side deadlines observed in research are measured in single-digit business days (e.g., a portal-window appeal open ~25 hours end-to-end, per `benchmarks/case-03-student-deadline.md`) — a weekly sweep could miss an entire window. Daily is cheap (filesystem scan + conditional re-fetch) and keeps within Grok Bot's per-Bot Routine budget (this project uses exactly one Routine, well under the documented 50-per-Bot ceiling).

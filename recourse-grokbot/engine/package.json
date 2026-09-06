@@ -1,8 +1,8 @@
 {
   "name": "recourse-engine",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Deterministic Recourse case engine (Phase 1): provenance validation, rule validation, procedure model, case twin, deviation detection. No LLM calls in this package.",
+  "description": "Recourse: the deterministic engine behind `recourse analyze`. Captures and hashes institutional policy sources, resolves which one governs a decision, compiles only rules it can verify verbatim (with a fail-closed deontic-support gate), replays a case's append-only event trace against them, checks procedural conformance including stated waivers, forecasts at explicit future instants, and emits a Recourse Trace. No LLM call anywhere in this package.",
   "type": "module",
   "bin": {
     "recourse": "./dist/cli/index.js"
@@ -20,7 +20,8 @@
     "bench:json": "node bench/runner.ts --json",
     "bench:capture": "node bench/capture.ts",
     "analyze": "node src/cli/index.ts analyze",
-    "trace": "node src/cli/index.ts trace"
+    "trace": "node src/cli/index.ts trace",
+    "drift": "node src/cli/index.ts drift"
   },
   "engines": {
     "node": ">=18.0.0"

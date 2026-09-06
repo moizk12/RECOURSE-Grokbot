@@ -1,9 +1,9 @@
 {
   "traceVersion": 2,
   "case": {
-    "caseId": "cwru-formal-hearing-demo",
+    "caseId": "cwru-formal-hearing-waiver-ruled-out-demo",
     "evaluationAt": "2026-03-24T00:00:00Z",
-    "dataMarker": "synthetic case data; real, live-acquired institutional source"
+    "dataMarker": "synthetic case data (the record affirmatively rules the notice waiver out); real, live-acquired institutional source"
   },
   "authority": {
     "query": {
@@ -39,7 +39,7 @@
       "sourceId": "cwru-formal-hearing",
       "requestedUrl": "https://case.edu/studentlife/conduct/university-code-conduct/procedures/formal-hearing-process",
       "finalUrl": "https://case.edu/studentlife/conduct/university-code-conduct/procedures/formal-hearing-process",
-      "retrievedAt": "2026-09-06T14:25:09.933Z",
+      "retrievedAt": "2026-09-06T14:25:10.685Z",
       "contentType": "text/html; charset=UTF-8",
       "rawBytesHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c",
       "contentHash": "sha256:e3585e74231d785333800735564e4f7283cf93d0dab1323da427d6cabfe2a73c",
@@ -112,6 +112,15 @@
         }
       },
       {
+        "eventId": "cw-e5",
+        "type": "hearing_notice_waiver_declined",
+        "occurredAt": "2026-03-20T11:00:00Z",
+        "detail": {
+          "synthetic": true,
+          "note": "respondent was asked to waive the notice period and declined in writing"
+        }
+      },
+      {
         "eventId": "cw-e3",
         "type": "relevant_information_disclosed",
         "occurredAt": "2026-03-20T14:00:00Z",
@@ -146,13 +155,13 @@
           "occurredAt": "2026-03-23T09:00:00Z"
         }
       ],
-      "status": "UNDETERMINED",
-      "calculation": "the requirement was not met as written -- \"hearing_held\" occurred at 2026-03-23T09:00:00Z, before the minimum 5 business_day(s) from \"hearing_notice_sent\" (2026-03-20T09:00:00Z) had elapsed (required on or after 2026-03-27) -- but the governing source attaches an exception to it (the respondent may waive the five-business-day notice period to expedite resolution), and the case record contains neither \"hearing_notice_waived\" nor \"hearing_notice_waiver_declined\". Whether this is a violation therefore cannot be determined. Absence of a recorded waiver is NOT evidence that no waiver was given; to resolve this, the record needs one of those two events.",
+      "status": "NONCONFORMANT",
+      "calculation": "\"hearing_held\" occurred at 2026-03-23T09:00:00Z, before the minimum 5 business_day(s) from \"hearing_notice_sent\" (2026-03-20T09:00:00Z) had elapsed (required on or after 2026-03-27) The exception stated in the governing source is ruled out: \"hearing_notice_waiver_declined\" was recorded at 2026-03-20T11:00:00Z.",
       "exception": {
         "exceptionId": "cwru-notice-waiver",
-        "state": "UNRESOLVED",
+        "state": "EXCLUDED",
         "description": "the respondent may waive the five-business-day notice period to expedite resolution",
-        "detail": "neither \"hearing_notice_waived\" nor \"hearing_notice_waiver_declined\" appears in the case record",
+        "detail": "ruled out by observed event \"hearing_notice_waiver_declined\" at 2026-03-20T11:00:00Z",
         "quotedText": "A respondent may choose to waive this notice in the interests of expediting resolution of the case."
       },
       "warrant": {
@@ -187,12 +196,7 @@
     }
   ],
   "forecast": [],
-  "uncertainty": [
-    {
-      "kind": "UNRESOLVED_EXCEPTION",
-      "detail": "conformance rule cwru-hearing-notice-lead-time: the requirement was not met as written -- \"hearing_held\" occurred at 2026-03-23T09:00:00Z, before the minimum 5 business_day(s) from \"hearing_notice_sent\" (2026-03-20T09:00:00Z) had elapsed (required on or after 2026-03-27) -- but the governing source attaches an exception to it (the respondent may waive the five-business-day notice period to expedite resolution), and the case record contains neither \"hearing_notice_waived\" nor \"hearing_notice_waiver_declined\". Whether this is a violation therefore cannot be determined. Absence of a recorded waiver is NOT evidence that no waiver was given; to resolve this, the record needs one of those two events."
-    }
-  ],
+  "uncertainty": [],
   "boundary": "Recourse compares a published institutional procedure against the recorded events of one case. It does not infer a remedy, a legal entitlement, guilt, innocence, or any guaranteed institutional outcome. A finding in this record states only whether an observed process matches a procedural rule that was validated against quoted text in the governing source; where the record is incomplete, the finding is UNDETERMINED rather than resolved in either party's favour. This is a procedural record, not legal advice.",
-  "traceHash": "sha256:e2f8a5a77a4a2c5e5ad205fac95d773061d4a96d02450de38c77008b49149346"
+  "traceHash": "sha256:67fef3a020ae35f665ed420660c8421adcbe1055d2e7862cf4e99fb3e55e07bc"
 }

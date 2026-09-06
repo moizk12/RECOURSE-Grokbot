@@ -18,7 +18,18 @@ export type CaseEventType =
   // minimum_lead_time constraints (see types/conformance.ts).
   | "hearing_notice_sent" // institution communicates hearing date/time/location to the respondent
   | "relevant_information_disclosed" // institution makes information relevant to the hearing available to the parties
-  | "hearing_held";
+  | "hearing_held"
+  | "consultative_meeting_held" // an informal resolution meeting between the parties, which later steps may be anchored on
+  // Exception/waiver events, consumed by conformance/conformanceChecker.ts
+  // against a ValidatedConformanceRule's `exception` (see types/conformance.ts).
+  // BOTH exist on purpose, and neither may be inferred from the other's
+  // absence: `hearing_notice_waived` records that the respondent actually
+  // waived the notice period, and `hearing_notice_waiver_declined` records
+  // that the case record affirmatively establishes no waiver was given. A
+  // trace containing neither means the waiver question is open, which is a
+  // distinct and reportable state -- not a licence to assume either answer.
+  | "hearing_notice_waived"
+  | "hearing_notice_waiver_declined";
 
 /** Append-only. Nothing in this codebase ever edits or removes a CaseEvent once logged. */
 export interface CaseEvent {
