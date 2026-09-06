@@ -77,17 +77,17 @@ const NOTICE_LEAD_TIME: ValidatedConformanceRule = Object.freeze({
   sourceId: "campus",
   actor: "institution",
   constraint: {
-    kind: "minimum_lead_time",
+    kind: "minimum_lead_time" as const,
     anchorEventType: "hearing_notice_sent",
     targetEventType: "hearing_held",
-    minimum: { amount: 5, unit: "business_day" },
+    minimum: { amount: 5, unit: "business_day" as const },
   },
   warrant: {
     sourceId: "campus",
     contentHash: "sha256:test",
     span: { start: 0, end: 10 },
     quotedText: "quoted",
-    claimType: "directly_stated",
+    claimType: "directly_stated" as const,
   },
 });
 

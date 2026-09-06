@@ -90,27 +90,27 @@
     {
       "id": "P1b",
       "name": "Recourse Trace proof artifact",
-      "status": "not_started",
+      "status": "verified",
       "items": [
         {
           "id": "P1b.1",
           "desc": "Deterministic JSON trace with case/authority/sources/validation/procedure/observed/conformance/forecast/uncertainty/boundary",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1b.2",
           "desc": "Human-readable Markdown rendering",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1b.3",
           "desc": "Deterministic content hash",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1b.4",
           "desc": "Structural tests guarding evidence presence",
-          "status": "not_started"
+          "status": "verified"
         }
       ]
     },
@@ -209,7 +209,14 @@
   "verified": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "147 pass / 0 fail",
+    "tests": "162 pass / 0 fail",
     "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT"
+  },
+  "sourceResearch": {
+    "uic": "SUITABLE (PDF, days defined as business days)",
+    "auburn": "SUITABLE - retarget to current Academic Integrity Policy PDF; 5 BUSINESS days, old Honesty Code URL is 404",
+    "cwru": "SUITABLE (HTML)",
+    "umn": "SUITABLE negative case (disclaimer verbatim present)",
+    "uconn": "UNSUITABLE - one URL carries current ASPIM + superseded 2008 regime with no archival marker; replace with University at Buffalo"
   }
 }

@@ -87,3 +87,16 @@ export type {
   ForecastChange,
   ForecastError,
 } from "./forecast/forecast.ts";
+export { buildRecourseTrace, renderRecourseTraceMarkdown, traceContentHash, TRACE_VERSION, TRACE_BOUNDARY_STATEMENT } from "./trace/recourseTrace.ts";
+export type {
+  RecourseTrace,
+  TraceValidatedClaim,
+  TraceRejectedClaim,
+  TraceReviewClaim,
+  TraceObligation,
+  TraceFinding,
+  TraceUncertainty,
+  UncertaintyKind,
+  ClaimKind,
+} from "./trace/recourseTrace.ts";
+export type { GatedRuleBatchResult, GatedRuleOutcome, RuleWarrantRecord } from "./warrant/gatedRawProposal.ts";

@@ -7,7 +7,7 @@ import type { ValidatedPolicyRule } from "../types/policy.ts";
 import { acquireSource } from "../warrant/acquireSource.ts";
 import { SourceStore } from "../warrant/sourceStore.ts";
 import type { RawClaimProposal } from "../warrant/rawProposal.ts";
-import { proposeGatedRawRules } from "../warrant/gatedRawProposal.ts";
+import { proposeGatedRawRules, type RuleWarrantRecord } from "../warrant/gatedRawProposal.ts";
 import type { RawRelationshipProposal } from "../authority/rawRelationship.ts";
 import { proposeRawRelationships } from "../authority/rawRelationship.ts";
 import { resolveAuthority, type AuthorityQuery, type AuthorityResolution } from "../authority/authorityResolver.ts";
@@ -100,8 +100,17 @@ export interface AnalyzeCaseResult {
   readonly sources: readonly SourceProvenance[];
   readonly authorityQuery: AuthorityQuery;
   readonly authority: AuthorityResolution;
+  readonly policySources: readonly PolicySource[];
   readonly relationships: {
-    readonly validated: readonly { readonly id: string; readonly type: string; readonly fromSourceId: string; readonly toSourceId: string; readonly quotedText: string }[];
+    readonly validated: readonly {
+      readonly id: string;
+      readonly type: string;
+      readonly fromSourceId: string;
+      readonly toSourceId: string;
+      readonly quotedText: string;
+      readonly span: { readonly start: number; readonly end: number };
+      readonly contentHash: string;
+    }[];
     readonly needsReview: readonly unknown[];
     readonly rejected: readonly unknown[];
   };
@@ -115,11 +124,23 @@ export interface AnalyzeCaseResult {
     readonly needsReview: readonly unknown[];
     readonly rejected: readonly unknown[];
   };
+  /**
+   * Verified warrant per validated policy rule. ValidatedPolicyRule
+   * deliberately does not retain its warrant (provenance is part of the rule;
+   * the checkable span/hash pointer is evidence ABOUT the rule), so the proof
+   * trail carries it alongside -- see trace/recourseTrace.ts.
+   */
+  readonly ruleWarrants: readonly RuleWarrantRecord[];
+  /** Validated but non-binding (MAY/SHOULD/NORMALLY/ENCOURAGED) rules. Never gate state; reported so they are visibly not gating it. */
+  readonly advisoryRules: readonly ValidatedPolicyRule[];
+  readonly eligibilityGrounds: readonly ValidatedPolicyRule[];
   readonly conflicts: readonly RuleConflict[];
   readonly caseState: ReturnType<typeof computeCaseState>;
   readonly conformance: readonly ConformanceResult[];
   readonly deviations: ReturnType<typeof detectDeviations>;
   readonly forecast: readonly ForecastPoint[];
+  /** The case's append-only trace, in the canonical order the engine evaluated it. */
+  readonly observedEvents: readonly CaseEvent[];
 }
 
 export async function analyzeCase(
@@ -201,6 +222,7 @@ export async function analyzeCase(
     sources: [...usedSources.values()].map(toProvenance),
     authorityQuery,
     authority,
+    policySources: input.policySources ?? [],
     relationships: {
       validated: relationships.validated.map((r) => ({
         id: r.id,
@@ -208,6 +230,8 @@ export async function analyzeCase(
         fromSourceId: r.fromSourceId,
         toSourceId: r.toSourceId,
         quotedText: r.warrant.quotedText,
+        span: r.warrant.span,
+        contentHash: r.warrant.contentHash,
       })),
       needsReview: relationships.needsReview,
       rejected: relationships.errors,
@@ -218,11 +242,15 @@ export async function analyzeCase(
       needsReview: conformanceRules.needsReview,
       rejected: conformanceRules.errors,
     },
+    ruleWarrants: rules.warrants,
+    advisoryRules: procedure.advisoryRules,
+    eligibilityGrounds: procedure.eligibilityGrounds,
     conflicts,
     caseState,
     conformance,
     deviations,
     forecast,
+    observedEvents: log.all(),
   };
 }
 
