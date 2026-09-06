@@ -100,3 +100,14 @@ export type {
   ClaimKind,
 } from "./trace/recourseTrace.ts";
 export type { GatedRuleBatchResult, GatedRuleOutcome, RuleWarrantRecord } from "./warrant/gatedRawProposal.ts";
+export { checkSourceDrift, renderDriftMarkdown } from "./drift/sourceDrift.ts";
+export type {
+  SourceDriftStatus,
+  SourceDriftFinding,
+  SourceSnapshot,
+  DependentClaim,
+  CaseDriftReport,
+  CheckDriftOptions,
+} from "./drift/sourceDrift.ts";
+export { driftCaseFile } from "./cli/driftCase.ts";
+export type { DriftCaseOutput } from "./cli/driftCase.ts";

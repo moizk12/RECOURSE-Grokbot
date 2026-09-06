@@ -155,27 +155,27 @@
     {
       "id": "P1d",
       "name": "Case-aware source/policy drift",
-      "status": "not_started",
+      "status": "verified",
       "items": [
         {
           "id": "P1d.1",
           "desc": "Drift primitive over pinned trace artifacts",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1d.2",
           "desc": "Dependent-claim staleness marking",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1d.3",
           "desc": "CLI callable without Grok",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1d.4",
           "desc": "GROK drift routine handoff doc",
-          "status": "not_started"
+          "status": "verified"
         }
       ]
     },
@@ -210,9 +210,10 @@
   "verified": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "168 pass / 0 fail",
+    "tests": "176 pass / 0 fail",
     "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT",
-    "benchmark": "28 properties across 5 institutions, 28 as expected, 0 unexpected"
+    "benchmark": "28 properties across 5 institutions, 28 as expected, 0 unexpected",
+    "driftRun": "recourse drift against the live CWRU page: UNCHANGED, exit 0"
   },
   "sourceResearch": {
     "uic": "SUITABLE (PDF, days defined as business days)",
