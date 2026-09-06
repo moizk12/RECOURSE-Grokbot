@@ -1,3 +1,6 @@
 node_modules/
 dist/
-cases/
+
+# Runtime case data only (ARCHITECTURE.md /cases/{case-id}/events.log.jsonl).
+# Anchored so it cannot also swallow bench/cases/, which is committed source.
+/cases/

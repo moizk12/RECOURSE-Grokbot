@@ -53,7 +53,7 @@
     {
       "id": "P1a",
       "name": "Deterministic procedural forecast",
-      "status": "not_started",
+      "status": "verified",
       "items": [
         {
           "id": "P1a.1",
@@ -83,7 +83,7 @@
         {
           "id": "P1a.6",
           "desc": "Flagship UIC NO_NEW_EVENTS demonstration",
-          "status": "not_started"
+          "status": "verified"
         }
       ]
     },
@@ -117,37 +117,38 @@
     {
       "id": "P1c",
       "name": "RecourseBench",
-      "status": "not_started",
+      "status": "verified",
       "items": [
         {
           "id": "P1c.1",
           "desc": "UIC academic grievance - two-sided clocks / derived trigger",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1c.2",
           "desc": "Auburn academic integrity - closed appeal grounds + 5 business day filing",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1c.3",
           "desc": "CWRU formal hearing - minimum notice lead time NONCONFORMANT",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1c.4",
           "desc": "UMN complaint guidance - negative test, guidance never compiled to obligation",
-          "status": "not_started"
+          "status": "verified"
         },
         {
           "id": "P1c.5",
           "desc": "5th institution - actor-chained process (verify source first)",
-          "status": "not_started"
+          "status": "verified",
+          "note": "UConn replaced with University at Buffalo: one UConn URL serves the current ASPIM policy and the superseded 2008 regime with no archival marker, and the required instructor-notification deadline exists only in the superseded text."
         },
         {
           "id": "P1c.6",
           "desc": "Benchmark runner + honest matrix report",
-          "status": "not_started"
+          "status": "verified"
         }
       ]
     },
@@ -209,8 +210,9 @@
   "verified": {
     "typecheck": "pass",
     "build": "pass",
-    "tests": "162 pass / 0 fail",
-    "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT"
+    "tests": "168 pass / 0 fail",
+    "cliRun": "recourse analyze -> APPLICABLE, 1 obligation missed, 1 NONCONFORMANT",
+    "benchmark": "28 properties across 5 institutions, 28 as expected, 0 unexpected"
   },
   "sourceResearch": {
     "uic": "SUITABLE (PDF, days defined as business days)",

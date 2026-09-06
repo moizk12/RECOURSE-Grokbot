@@ -15,7 +15,12 @@
     "evaluate": "node src/cli/index.ts evaluate",
     "evaluate:dist": "node dist/cli/index.js evaluate",
     "resolve": "node src/cli/index.ts resolve",
-    "resolve:dist": "node dist/cli/index.js resolve"
+    "resolve:dist": "node dist/cli/index.js resolve",
+    "bench": "node bench/runner.ts",
+    "bench:json": "node bench/runner.ts --json",
+    "bench:capture": "node bench/capture.ts",
+    "analyze": "node src/cli/index.ts analyze",
+    "trace": "node src/cli/index.ts trace"
   },
   "engines": {
     "node": ">=18.0.0"
