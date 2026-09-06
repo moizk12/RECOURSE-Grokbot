@@ -13,6 +13,16 @@ export type {
 } from "./types/policy.ts";
 export type { CaseEvent, CaseEventType, CaseState, ObligationState, Deviation, DeviationType } from "./types/case.ts";
 export type { SourceArtifact, ExtractorMetadata, EvidenceWarrant, ClaimType, WarrantError } from "./types/warrant.ts";
+export type {
+  SourceRelationType,
+  AuthorityLevel,
+  ApplicabilityScope,
+  EffectiveWindow,
+  PolicySource,
+  CandidateSourceRelationship,
+  ValidatedSourceRelationship,
+  RelationshipWarrantError,
+} from "./types/authority.ts";
 
 export { validateRule, validateRules } from "./validation/ruleValidator.ts";
 export { validateProvenance } from "./validation/provenanceValidator.ts";
@@ -23,6 +33,10 @@ export { checkWarrant } from "./warrant/warrantValidator.ts";
 export type { WarrantOutcome } from "./warrant/warrantValidator.ts";
 export { proposeAndValidate, proposeAndValidateAll } from "./warrant/pipeline.ts";
 export type { PipelineOutcome, PipelineBatchResult } from "./warrant/pipeline.ts";
+export { checkRelationshipWarrant } from "./authority/relationshipValidator.ts";
+export type { RelationshipWarrantOutcome } from "./authority/relationshipValidator.ts";
+export { resolveAuthority } from "./authority/authorityResolver.ts";
+export type { AuthorityQuery, AuthorityResolution } from "./authority/authorityResolver.ts";
 export { resolveRawProposal, proposeRawAndValidate, proposeRawAndValidateAll } from "./warrant/rawProposal.ts";
 export type { RawClaimProposal, RawProposalOutcome } from "./warrant/rawProposal.ts";
 export { buildProcedureModel, detectConflicts } from "./procedure/procedureModel.ts";

@@ -34,6 +34,7 @@ node src/cli/index.ts evaluate fixtures/uic-case.json
 ```
 src/types/          policy + case data model (CandidatePolicyRule, ValidatedPolicyRule, CaseEvent, ...)
 src/validation/      provenance + structural rule validation (fail-closed)
+src/authority/       policy source authority/lineage: relationship warrant check + deterministic governing-source resolver
 src/calendar/        deterministic business-day/date engine
 src/procedure/       procedure model (obligations/evidence gates/escalation/terminal states) + conflict detection
 src/case/            append-only event log + Case Twin state computation
@@ -52,3 +53,28 @@ omitted trigger, an unevidenced `CLOSED` grounds list, or a malformed
 deadline all reject the rule rather than filling in a "reasonable
 assumption." There is no other constructor for a `ValidatedPolicyRule`, and
 nothing downstream accepts a `CandidatePolicyRule`.
+
+## Which source governs
+
+Rule validation only ever checks a *rule's* provenance. It says nothing
+about whether the document that rule was compiled from is the right one to
+be governing a given decision at all — the most damaging error Recourse can
+make is confidently applying the wrong governing source (see
+`benchmarks/case-07-conflicting-sources.md`, `case-08-stale-policy.md`).
+`src/authority/` is the deterministic layer that answers that separately:
+
+- `authority/relationshipValidator.ts#checkRelationshipWarrant` — the same
+  warrant discipline as `warrant/warrantValidator.ts`, applied to a proposed
+  relationship between two sources (`GOVERNS`/`IMPLEMENTS`/`EXTENDS`/
+  `SUPERSEDES`/`GUIDANCE_FOR`, see `types/authority.ts`) instead of a rule.
+  A relationship is never inferred from a source's URL, domain, or title —
+  only from a verified quoted span that actually asserts it.
+- `authority/authorityResolver.ts#resolveAuthority` — given a set of
+  `PolicySource`s and only the `ValidatedSourceRelationship`s that passed
+  the check above, deterministically returns `APPLICABLE` (with the one
+  governing source id), `BLOCKED_SOURCE_UNAVAILABLE` (nothing matches the
+  query scope), or `BLOCKED_SOURCE_CONFLICT` (two or more sources claim the
+  scope with no validated relationship deciding between them) — mirroring
+  the case-state vocabulary in `STATE_MACHINE.md` on purpose. It never picks
+  a source by "more specific" or "more official-looking" defaults; an
+  unresolved competing claim always fails closed into `BLOCKED_SOURCE_CONFLICT`.
