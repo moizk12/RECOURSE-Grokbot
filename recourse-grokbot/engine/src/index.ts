@@ -23,6 +23,17 @@ export type {
   ValidatedSourceRelationship,
   RelationshipWarrantError,
 } from "./types/authority.ts";
+export type {
+  ConformanceConstraint,
+  RequiredEventConstraint,
+  RequiredBeforeConstraint,
+  MinimumLeadTimeConstraint,
+  CandidateConformanceRule,
+  ValidatedConformanceRule,
+  ConformanceRuleError,
+  ConformanceStatus,
+  ConformanceResult,
+} from "./types/conformance.ts";
 
 export { validateRule, validateRules } from "./validation/ruleValidator.ts";
 export { validateProvenance } from "./validation/provenanceValidator.ts";
@@ -37,6 +48,11 @@ export { checkRelationshipWarrant } from "./authority/relationshipValidator.ts";
 export type { RelationshipWarrantOutcome } from "./authority/relationshipValidator.ts";
 export { resolveAuthority } from "./authority/authorityResolver.ts";
 export type { AuthorityQuery, AuthorityResolution } from "./authority/authorityResolver.ts";
+export { validateConformanceRule } from "./conformance/conformanceValidator.ts";
+export type { ConformanceWarrantOutcome } from "./conformance/conformanceValidator.ts";
+export { proposeConformanceRule, proposeConformanceRules } from "./conformance/conformancePipeline.ts";
+export type { ConformancePipelineOutcome, ConformancePipelineBatchResult } from "./conformance/conformancePipeline.ts";
+export { checkConformance, checkAllConformance } from "./conformance/conformanceChecker.ts";
 export { resolveRawProposal, proposeRawAndValidate, proposeRawAndValidateAll } from "./warrant/rawProposal.ts";
 export type { RawClaimProposal, RawProposalOutcome } from "./warrant/rawProposal.ts";
 export { buildProcedureModel, detectConflicts } from "./procedure/procedureModel.ts";

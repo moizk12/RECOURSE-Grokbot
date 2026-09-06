@@ -12,7 +12,13 @@ export type CaseEventType =
   | "evidence_provided"
   | "student_action_taken" // e.g. appeal filed
   | "institution_action_taken" // e.g. institution responded
-  | "escalation_filed";
+  | "escalation_filed"
+  // Hearing-procedure events, consumed by conformance/conformanceChecker.ts
+  // against a ValidatedConformanceRule's required_event/required_before/
+  // minimum_lead_time constraints (see types/conformance.ts).
+  | "hearing_notice_sent" // institution communicates hearing date/time/location to the respondent
+  | "relevant_information_disclosed" // institution makes information relevant to the hearing available to the parties
+  | "hearing_held";
 
 /** Append-only. Nothing in this codebase ever edits or removes a CaseEvent once logged. */
 export interface CaseEvent {

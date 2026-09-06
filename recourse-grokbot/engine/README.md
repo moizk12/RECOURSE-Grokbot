@@ -35,6 +35,7 @@ node src/cli/index.ts evaluate fixtures/uic-case.json
 src/types/          policy + case data model (CandidatePolicyRule, ValidatedPolicyRule, CaseEvent, ...)
 src/validation/      provenance + structural rule validation (fail-closed)
 src/authority/       policy source authority/lineage: relationship warrant check + deterministic governing-source resolver
+src/conformance/     procedural conformance: required_event/required_before/minimum_lead_time rules, authority-gated pipeline, event-trace checker
 src/calendar/        deterministic business-day/date engine
 src/procedure/       procedure model (obligations/evidence gates/escalation/terminal states) + conflict detection
 src/case/            append-only event log + Case Twin state computation
@@ -78,3 +79,41 @@ make is confidently applying the wrong governing source (see
   the case-state vocabulary in `STATE_MACHINE.md` on purpose. It never picks
   a source by "more specific" or "more official-looking" defaults; an
   unresolved competing claim always fails closed into `BLOCKED_SOURCE_CONFLICT`.
+
+## Did the case actually follow the procedure
+
+Resolving which source governs still says nothing about whether the
+institution's (or student's) actual conduct, as recorded in the case's
+append-only event trace, followed that source's procedural requirements.
+`src/conformance/` is the third trust boundary, layered directly on top of
+authority resolution:
+
+- `types/conformance.ts` — three constraint kinds: `required_event` (some
+  event must appear in the trace at all, optionally with a boundary event
+  that is the only thing allowed to turn its absence into a violation),
+  `required_before` (one event must occur strictly before another), and
+  `minimum_lead_time` (the gap between two events must be at least N
+  business/calendar days). Every rule carries a responsible `actor` and a
+  `warrant`.
+- `conformance/conformanceValidator.ts` — the same warrant discipline as
+  `warrant/warrantValidator.ts` and `authority/relationshipValidator.ts`:
+  auto-promotable only for a verified, directly-stated claim; an inferred
+  claim fails into review.
+- `conformance/conformancePipeline.ts#proposeConformanceRule` — the
+  authority gate. It refuses to even warrant-check a candidate unless the
+  `AuthorityResolution` passed in is `APPLICABLE` and the candidate's
+  `sourceId` is the resolved governing source or one of its validated
+  supporting sources. A source still `BLOCKED_SOURCE_CONFLICT` or
+  `BLOCKED_SOURCE_UNAVAILABLE` can never produce an executable conformance
+  rule, however well warranted its own text is.
+- `conformance/conformanceChecker.ts#checkConformance` — compares one
+  `ValidatedConformanceRule` against a `CaseEventLog` and returns
+  `CONFORMANT`, `NONCONFORMANT`, or `UNDETERMINED`. Fails closed toward
+  `UNDETERMINED`: absence of an event is only ever reported as
+  `NONCONFORMANT` once an actually-observed boundary or target event makes
+  that conclusion unavoidable, never merely because time has passed with
+  nothing logged.
+
+`test/conformance.test.ts` runs this against a benchmark modeled on Case
+Western Reserve University's Formal Hearing Process (five-business-day
+hearing notice; relevant information made available before the hearing).
