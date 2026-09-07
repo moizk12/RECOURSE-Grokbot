@@ -128,7 +128,7 @@ is true.
 - [ ] **Public Bot template** created and its link live.
 - [ ] **Hashtag** `#GrokBotForStudents` present in the post.
 - [ ] **Typeform** submitted.
-- [ ] **URLs / commit / tag verified**: repository public; `v1.0.0-competition` tag pushed and
+- [ ] **URLs / commit / tag verified**: repository public; `v1.0.1-competition` tag pushed and
       resolving; every URL in the post and video opens.
 - [ ] **Privacy / secrets check**: no credentials, tokens, or `.env` in the repo; all case data
       synthetic; no DePaul or authenticated-system data anywhere.
