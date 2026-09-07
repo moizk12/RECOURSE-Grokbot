@@ -1,0 +1,23 @@
+VIDEO:
+RECOURSE_V2_FINAL.mp4
+
+LOCAL SOURCE:
+C:\Dev\recourse-video\deliverables\RECOURSE_V2_FINAL.mp4
+
+SHA256:
+116e8d71f6c0db6514b78e28a21cbbeac141af3c07945c8393eaec5df49e74c4
+
+EXPECTED:
+1080x1350
+30fps
+62.000000 seconds
+1860 decoded frames
+H.264
+yuv420p
+BT.709
+no audio
+
+PURPOSE:
+Temporary independent visual QA artifact.
+Not a release.
+Not submission publication.
