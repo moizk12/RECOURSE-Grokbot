@@ -25,6 +25,7 @@ The model proposes. It does not get to be the evidence.
 
 ## Try it
 
+- **Competition post + demo:** https://lnkd.in/p/g_GwSFTy
 - **Grok Bot:** https://x.ai/bot/kJ--EFKahgh9CGzrMY0yR
 - **Full technical README:** [recourse-grokbot/README.md](recourse-grokbot/README.md)
 - **Canonical release:** `v1.0.1-competition`
